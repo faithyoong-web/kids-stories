@@ -1,0 +1,10 @@
+dist/
+.venv/
+__pycache__/
+.DS_Store
+# downloaded by the build from its official release
+tools/fonts/*.ttf
+# single-page build for the private claude.ai version
+app/publish.html
+# superseded style mockup, kept on disk only
+archive/

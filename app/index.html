@@ -1,0 +1,519 @@
+<title>识字小书</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: one full-screen view at a time (bookshelf, reader, game, finish, grown-ups). The whole app is a paper book, so it keeps one light look in both themes on purpose. */
+:root {
+  --paper: #FAF7F0;
+  --desk: #EFE8DA;
+  --ink: #2A2724;
+  --ink-soft: #6B655E;
+  --line: #DDD3C2;
+  --gold: #F3D58A;
+  --leaf: #8DB86A;
+  --seal: #B8432F;
+  --font-hanzi: "Kaiti SC", "STKaiti", "KaiTi", "楷体", "BiauKai", serif;
+  --font-ui: "Figtree", system-ui, sans-serif;
+  color-scheme: light;
+}
+html, body { height: 100%; }
+body { margin: 0; background: var(--desk); color: var(--ink); font-family: var(--font-ui); overflow: hidden; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+#app { position: relative; height: 100%; padding-left: max(0px, env(safe-area-inset-left, 0px)); padding-right: max(0px, env(safe-area-inset-right, 0px)); }
+.view { position: absolute; inset: 0; }
+.view[hidden], svg[hidden] { display: none !important; }
+button { font: inherit; color: inherit; }
+.w, .w > *, .o > * { mix-blend-mode: multiply; }
+
+/* bookshelf */
+#shelf { display: flex; flex-direction: column; overflow-y: auto; background: var(--desk); }
+.shelf-in { width: 100%; max-width: 1100px; margin: 0 auto; padding-block: 28px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 22px; }
+.shelf-top { display: flex; justify-content: flex-end; }
+.books { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(16px, 3vw, 32px); }
+.book { border: 0; padding: 0; background: var(--paper); border-radius: 16px; cursor: pointer; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 1px 0 var(--line), 0 10px 24px rgba(90,70,40,.12); text-align: center; position: relative; transition: transform .15s ease; }
+.book:active { transform: scale(.98); }
+.book:focus-visible { outline: 4px solid var(--seal); outline-offset: 3px; }
+.book svg { width: 100%; aspect-ratio: 15 / 8; display: block; max-width: 100%; }
+.book .t { font-family: var(--font-hanzi); font-size: clamp(34px, 4.6vw, 48px); line-height: 1.2; padding: 10px 12px 14px; }
+.book .badge { position: absolute; top: 10px; right: 10px; width: 46px; height: 46px; }
+.grown { width: 46px; height: 46px; border-radius: 50%; border: 0; background: transparent; color: var(--ink-soft); cursor: pointer; display: grid; place-items: center; position: relative; }
+.grown svg { width: 26px; height: 26px; }
+.grown .ring { position: absolute; inset: 0; width: 46px; height: 46px; }
+.grown .ring circle { fill: none; stroke: var(--seal); stroke-width: 3; stroke-dasharray: 138; stroke-dashoffset: 138; }
+.grown.holding .ring circle { transition: stroke-dashoffset 1s linear; stroke-dashoffset: 0; }
+
+/* reader */
+#reader { display: grid; grid-template-rows: minmax(0, 1fr) auto; background: var(--paper); user-select: none; -webkit-user-select: none; }
+.pic { position: relative; min-height: 0; }
+.pic > svg { width: 100%; height: 100%; display: block; }
+.band { position: relative; background: var(--paper); padding: clamp(12px, 2.4vh, 26px) clamp(56px, 9vw, 110px) clamp(22px, 3.6vh, 36px); display: flex; justify-content: center; align-items: center; min-height: 22vh; }
+.line { font-family: var(--font-hanzi); color: var(--ink); font-size: clamp(38px, min(7vw, 9vh), 84px); line-height: 1.3; display: flex; flex-wrap: wrap; justify-content: center; gap: 0 .06em; max-width: 13em; }
+.u { display: inline-flex; align-items: center; white-space: nowrap; }
+.ch { background: none; border: 0; padding: 0 .04em; margin: 0; cursor: pointer; border-radius: 12px; position: relative; font: inherit; color: inherit; }
+.ch:focus-visible { outline: 3px solid var(--seal); outline-offset: 2px; }
+.ch.pop { animation: pop .45s ease; }
+.ch.reading { background: radial-gradient(closest-side, rgba(243,213,138,.95), rgba(243,213,138,.55) 70%, rgba(243,213,138,0)); }
+.punct { padding: 0 .02em; color: #8A8178; }
+@keyframes pop { 40% { transform: scale(1.28) rotate(-3deg) } }
+.rbtn { position: absolute; width: clamp(48px, 7vw, 66px); height: clamp(48px, 7vw, 66px); border-radius: 50%; border: 0; cursor: pointer; display: grid; place-items: center; background: rgba(250,247,240,.92); color: var(--ink); box-shadow: 0 2px 6px rgba(60,45,20,.15); z-index: 3; }
+.rbtn svg { width: 54%; height: 54%; }
+.rbtn:focus-visible, .arrow:focus-visible, .card:focus-visible, .big:focus-visible { outline: 3px solid var(--seal); outline-offset: 3px; }
+.rbtn.home { top: max(14px, env(safe-area-inset-top, 0px)); left: 14px; }
+.rbtn.speak { top: max(14px, env(safe-area-inset-top, 0px)); right: 14px; background: var(--gold); }
+.rbtn.speak.on { animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(1.08) } }
+.arrow { position: absolute; top: 50%; transform: translateY(-50%); width: clamp(48px, 7vw, 70px); height: clamp(48px, 7vw, 70px); border: 0; background: none; cursor: pointer; color: #8A8178; display: grid; place-items: center; border-radius: 50%; }
+.arrow svg { width: 72%; height: 72%; }
+.arrow.prev { left: clamp(4px, 1.5vw, 18px); }
+.arrow.next { right: clamp(4px, 1.5vw, 18px); }
+.arrow.next.to-game { color: #D9A232; }
+.arrow[disabled] { visibility: hidden; }
+.dots { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; justify-content: center; gap: 8px; }
+.dots span { width: 9px; height: 9px; border-radius: 50%; background: #E2D9CA; }
+.dots span.on { background: #9C8F7E; }
+.bubble { position: absolute; z-index: 5; background: #FFFDF7; border-radius: 22px; padding: 4px 22px 0; font-family: var(--font-hanzi); color: var(--ink); font-size: clamp(80px, 14vw, 170px); line-height: 1.12; box-shadow: 0 10px 30px rgba(60,45,20,.22), 0 0 0 3px var(--gold); transform: translate(-50%, -100%); pointer-events: none; animation: rise .25s ease; }
+.bubble::after { content: ""; position: absolute; left: 50%; bottom: -12px; width: 24px; height: 24px; background: #FFFDF7; transform: translateX(-50%) rotate(45deg); box-shadow: 3px 3px 0 0 var(--gold); }
+@keyframes rise { from { opacity: 0; transform: translate(-50%, -88%) } }
+
+/* game */
+#game, #done { background: var(--paper); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(18px, 4vh, 40px); padding: 70px 16px 40px; overflow: hidden; }
+.wash { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.progress { position: absolute; top: max(24px, env(safe-area-inset-top, 0px)); left: 0; right: 0; display: flex; justify-content: center; gap: 10px; }
+.progress svg { width: clamp(26px, 4vw, 38px); height: auto; }
+.progress svg { fill: none; stroke: #CBBFA9; stroke-width: 3; stroke-linejoin: round; }
+.progress .got svg { fill: #F2C14E; stroke: #D9A232; }
+.big { position: relative; width: clamp(96px, 15vw, 140px); height: clamp(96px, 15vw, 140px); border-radius: 50%; border: 0; background: var(--gold); color: var(--ink); cursor: pointer; display: grid; place-items: center; box-shadow: 0 6px 0 #E3BF62; }
+.big svg { width: 50%; height: 50%; }
+.big:active { transform: translateY(3px); box-shadow: 0 3px 0 #E3BF62; }
+.sentence { position: relative; font-family: var(--font-hanzi); font-size: clamp(40px, min(7vw, 9vh), 84px); line-height: 1.3; display: flex; flex-wrap: wrap; justify-content: center; max-width: 13em; }
+.sentence .slot { display: inline-grid; place-items: center; width: 1.1em; height: 1.15em; margin: 0 .06em; border: 3px dashed #CBBFA9; border-radius: 14px; }
+.sentence .slot.filled { border-color: var(--leaf); background: #EEF5E2; }
+.sentence .reading { background: radial-gradient(closest-side, rgba(243,213,138,.95), rgba(243,213,138,.55) 70%, rgba(243,213,138,0)); border-radius: 12px; }
+.cards { position: relative; display: flex; gap: clamp(14px, 3vw, 36px); flex-wrap: wrap; justify-content: center; }
+.card { font-family: var(--font-hanzi); font-size: clamp(64px, min(11vw, 14vh), 124px); line-height: 1; color: var(--ink); width: 1.5em; height: 1.5em; display: grid; place-items: center; background: #FFFDF8; border: 0; border-radius: 20px; cursor: pointer; box-shadow: 0 0 0 2px #E4DACB, 0 7px 0 #E4DACB; }
+.card:nth-child(1) { rotate: -3deg; } .card:nth-child(3) { rotate: 2.5deg; }
+.card.right { box-shadow: 0 0 0 5px var(--leaf), 0 7px 0 var(--leaf); background: #EEF5E2; }
+.card.wrong { animation: wobble .4s ease; }
+@keyframes wobble { 25% { translate: -10px 0 } 75% { translate: 10px 0 } }
+.rowbtns { position: relative; display: flex; gap: 28px; }
+.star-big { position: relative; width: clamp(160px, 30vw, 280px); height: auto; animation: grow .6s ease; }
+@keyframes grow { from { transform: scale(.4) rotate(-20deg); opacity: 0 } }
+
+/* grown-ups */
+#parent { background: var(--desk); overflow-y: auto; }
+.parent-in { max-width: 760px; margin: 0 auto; padding-block: 28px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 26px; }
+.parent-in h1 { font-size: 26px; font-weight: 600; margin: 0; }
+.parent-in h2 { font-size: 17px; font-weight: 600; margin: 0 0 10px; }
+.parent-in p { margin: 0; color: var(--ink-soft); line-height: 1.55; font-size: 15px; max-width: 62ch; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.chip { font-family: var(--font-hanzi); font-size: 30px; line-height: 1; padding: 8px 12px 6px; border-radius: 10px; background: var(--paper); border: 1px solid var(--line); display: inline-flex; align-items: baseline; gap: 6px; }
+.chip small { font-family: var(--font-ui); font-size: 13px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.chip.weak { border-color: var(--seal); }
+.list { display: flex; flex-direction: column; gap: 8px; }
+.list div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px; background: var(--paper); border-radius: 10px; font-size: 15px; }
+.list .hz { font-family: var(--font-hanzi); font-size: 24px; }
+.pbtn { border: 1px solid var(--line); background: var(--paper); border-radius: 10px; padding: 10px 16px; cursor: pointer; font-size: 15px; }
+.pbtn.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.pbtn:focus-visible { outline: 3px solid var(--seal); outline-offset: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.err { padding: 40px 20px; text-align: center; color: var(--ink-soft); }
+@media (max-width: 640px) { .books { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .ch.pop, .bubble, .card.wrong, .rbtn.speak.on, .star-big { animation: none } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="wc" x="-15%" y="-15%" width="130%" height="130%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="3" seed="4" result="warp"/>
+      <feDisplacementMap in="SourceGraphic" in2="warp" scale="16" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="4" seed="11" result="bloom"/>
+      <feColorMatrix in="bloom" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.1 1.4" result="bloomA"/>
+      <feComposite in="shape" in2="bloomA" operator="in" result="mottled"/>
+      <feMorphology in="shape" operator="erode" radius="2.5" result="inner"/>
+      <feComposite in="shape" in2="inner" operator="out" result="rim"/>
+      <feGaussianBlur in="rim" stdDeviation="0.8" result="rimSoft"/>
+      <feMerge><feMergeNode in="mottled"/><feMergeNode in="rimSoft"/></feMerge>
+    </filter>
+    <filter id="wcS" x="-15%" y="-15%" width="130%" height="130%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="9" result="warp"/>
+      <feDisplacementMap in="SourceGraphic" in2="warp" scale="6" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" seed="3" result="bloom"/>
+      <feColorMatrix in="bloom" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.0 1.35" result="bloomA"/>
+      <feComposite in="shape" in2="bloomA" operator="in" result="mottled"/>
+      <feMorphology in="shape" operator="erode" radius="2" result="inner"/>
+      <feComposite in="shape" in2="inner" operator="out" result="rim"/>
+      <feMerge><feMergeNode in="mottled"/><feMergeNode in="rim"/></feMerge>
+    </filter>
+    <filter id="wcO" x="-15%" y="-15%" width="130%" height="130%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="3" seed="4" result="warp"/>
+      <feDisplacementMap in="SourceGraphic" in2="warp" scale="16" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+      <feFlood flood-color="#F8F4EA" result="paperC"/>
+      <feComposite in="paperC" in2="shape" operator="in" result="reserve"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="4" seed="11" result="bloom"/>
+      <feColorMatrix in="bloom" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.1 1.4" result="bloomA"/>
+      <feComposite in="shape" in2="bloomA" operator="in" result="mottled"/>
+      <feMorphology in="shape" operator="erode" radius="2.5" result="inner"/>
+      <feComposite in="shape" in2="inner" operator="out" result="rim"/>
+      <feGaussianBlur in="rim" stdDeviation="0.8" result="rimSoft"/>
+      <feMerge><feMergeNode in="reserve"/><feMergeNode in="mottled"/><feMergeNode in="rimSoft"/></feMerge>
+    </filter>
+    <filter id="wcSO" x="-15%" y="-15%" width="130%" height="130%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="9" result="warp"/>
+      <feDisplacementMap in="SourceGraphic" in2="warp" scale="6" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+      <feFlood flood-color="#F8F4EA" result="paperC"/>
+      <feComposite in="paperC" in2="shape" operator="in" result="reserve"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" seed="3" result="bloom"/>
+      <feColorMatrix in="bloom" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.0 1.35" result="bloomA"/>
+      <feComposite in="shape" in2="bloomA" operator="in" result="mottled"/>
+      <feMorphology in="shape" operator="erode" radius="2" result="inner"/>
+      <feComposite in="shape" in2="inner" operator="out" result="rim"/>
+      <feMerge><feMergeNode in="reserve"/><feMergeNode in="mottled"/><feMergeNode in="rim"/></feMerge>
+    </filter>
+    <filter id="brush" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="2" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="3" seed="7" result="t"/>
+      <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.45  0 0 0 0 0.38  0 0 0 0 0.28  0 0 0 0.55 -0.18"/>
+    </filter>
+    <filter id="blotch" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.004" numOctaves="2" seed="21" result="t"/>
+      <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.85  0 0 0 0 0.76  0 0 0 0 0.6  0 0 0 0.5 -0.12"/>
+    </filter>
+    <symbol id="i-speaker" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7M6 10v9h12v-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-prev" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-next" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-star" viewBox="0 0 40 38"><path d="M20 3l5 10.5 11.5 1.6-8.3 8 2 11.4L20 29l-10.2 5.5 2-11.4-8.3-8L15 13.5z"/></symbol>
+    <symbol id="i-again" viewBox="0 0 24 24"><path d="M5 12a7 7 0 1 0 2.1-5M5 4v4h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-grown" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="17" cy="10" r="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M15.5 14.4c2.6-.3 4.4 1.2 5 4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<div id="app">
+  <section id="shelf" class="view" aria-label="Bookshelf">
+    <div class="shelf-in">
+      <div class="shelf-top">
+        <button class="grown" id="grown" type="button" aria-label="For grown-ups: press and hold">
+          <svg class="ring" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="22"/></svg>
+          <svg aria-hidden="true"><use href="#i-grown"/></svg>
+        </button>
+      </div>
+      <div class="books" id="books"><p class="err">Loading the books…</p></div>
+    </div>
+  </section>
+
+  <section id="reader" class="view" hidden aria-label="Story">
+    <div class="pic">
+      <svg id="pic" viewBox="0 0 1200 640" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Story picture"></svg>
+      <button class="rbtn home" data-home type="button" aria-label="Back to the bookshelf"><svg aria-hidden="true"><use href="#i-home"/></svg></button>
+      <button class="rbtn speak" id="speak" type="button" aria-label="Read this page aloud"><svg aria-hidden="true"><use href="#i-speaker"/></svg></button>
+    </div>
+    <div class="band" id="band">
+      <button class="arrow prev" id="prev" type="button" aria-label="Previous page"><svg aria-hidden="true"><use href="#i-prev"/></svg></button>
+      <div class="line" id="line" lang="zh-CN"></div>
+      <button class="arrow next" id="next" type="button" aria-label="Next page"><svg aria-hidden="true"><use href="#i-next"/></svg></button>
+      <div class="dots" id="dots"></div>
+    </div>
+  </section>
+
+  <section id="game" class="view" hidden aria-label="Word game">
+    <svg class="wash" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true">
+      <rect width="1600" height="1000" filter="url(#blotch)"/>
+      <g class="w" filter="url(#wc)"><path fill="#C6DDE6" fill-opacity=".45" d="M40 40 C 500 10, 1100 50, 1560 30 L 1550 230 C 1100 200, 500 220, 50 200 Z"/><path fill="#B9CD8B" fill-opacity=".45" d="M30 840 C 500 800, 1100 820, 1570 790 L 1570 970 L 30 970 Z"/></g>
+      <rect width="1600" height="1000" filter="url(#grain)" style="mix-blend-mode:multiply"/>
+    </svg>
+    <button class="rbtn home" data-home type="button" aria-label="Back to the bookshelf"><svg aria-hidden="true"><use href="#i-home"/></svg></button>
+    <div class="progress" id="progress" aria-label="Rounds"></div>
+    <div id="prompt" style="position:relative; display:flex; justify-content:center;"></div>
+    <div class="cards" id="cards" lang="zh-CN"></div>
+  </section>
+
+  <section id="done" class="view" hidden aria-label="Finished">
+    <svg class="wash" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true">
+      <rect width="1600" height="1000" filter="url(#blotch)"/>
+      <g class="w" filter="url(#wc)"><circle cx="800" cy="430" r="330" fill="#F3D58A" fill-opacity=".45"/></g>
+      <rect width="1600" height="1000" filter="url(#grain)" style="mix-blend-mode:multiply"/>
+    </svg>
+    <svg class="star-big" viewBox="0 0 40 38" aria-hidden="true"><use href="#i-star" fill="#F2C14E" stroke="#D9A232" stroke-width="1.5" stroke-linejoin="round"/></svg>
+    <div class="rowbtns">
+      <button class="big" id="again" type="button" aria-label="Read the story again"><svg aria-hidden="true"><use href="#i-again"/></svg></button>
+      <button class="big" data-home type="button" aria-label="Back to the bookshelf" style="background:#CFE3B8; box-shadow:0 6px 0 #A9C98A"><svg aria-hidden="true"><use href="#i-home"/></svg></button>
+    </div>
+  </section>
+
+  <section id="parent" class="view" hidden aria-label="For grown-ups">
+    <div class="parent-in">
+      <div class="row" style="justify-content:space-between">
+        <h1>For grown-ups</h1>
+        <button class="pbtn" id="parentClose" type="button">Back to books</button>
+      </div>
+      <div>
+        <h2>Characters he tapped for help</h2>
+        <p style="margin-bottom:12px">Most-tapped first. A red outline marks the words he's still unsure of (我 里 在 有). Taps are saved on this device only.</p>
+        <div class="chips" id="pTaps"></div>
+      </div>
+      <div>
+        <h2>Stories</h2>
+        <div class="list" id="pStories"></div>
+      </div>
+      <div>
+        <h2>Start fresh</h2>
+        <div class="row" id="resetRow"><button class="pbtn" id="reset" type="button">Clear tap history</button></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="scenes.js"></script>
+<script>
+(function () {
+  var KEY = "hz-reader-v1";
+  var HAN = /[\u4e00-\u9fff]/;
+  function load() { try { var d = JSON.parse(localStorage.getItem(KEY)); if (d && d.taps) return d; } catch (e) {} return { taps: {}, done: {} }; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  var state = load(), data = null, manifest = null, story = null, pages = [], idx = 0;
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ---------- audio ---------- */
+  var player = new Audio(); player.preload = "auto";
+  var raf = 0, lineToken = 0;
+  function play(src, onend) {
+    lineToken++; cancelAnimationFrame(raf);
+    try { player.pause(); } catch (e) {}
+    player.onended = onend || null;
+    player.src = "audio/" + src;
+    player.preservesPitch = true; player.webkitPreservesPitch = true;
+    var p = player.play(); if (p && p.catch) p.catch(function () { if (onend) onend(); });
+  }
+  function stopAudio() { lineToken++; cancelAnimationFrame(raf); player.onended = null; try { player.pause(); } catch (e) {} }
+  function sayChar(c, onend) { if (manifest && manifest.chars[c]) play(manifest.chars[c], onend); else if (onend) onend(); }
+  function praise(key, onend) { if (manifest && manifest.praise[key]) play(manifest.praise[key], onend); else if (onend) onend(); }
+  /* Plays a line and lights each character as it is spoken, following the audio clock. */
+  function readLine(entry, els, onend) {
+    play(entry.src, function () { clear(); if (onend) onend(); });
+    var tok = lineToken, tm = entry.t, cur = -1;
+    function clear() { els.forEach(function (e) { e.classList.remove("reading"); }); }
+    function tick() {
+      if (tok !== lineToken) { clear(); return; }
+      var t = player.currentTime, k = -1;
+      for (var i = 0; i < tm.length; i++) if (t >= tm[i][0] - 0.03) k = i;
+      if (k === tm.length - 1 && t > tm[k][0] + tm[k][1] + 0.15) k = -1;
+      if (k !== cur) { if (els[cur]) els[cur].classList.remove("reading"); if (els[k]) els[k].classList.add("reading"); cur = k; }
+      raf = requestAnimationFrame(tick);
+    }
+    raf = requestAnimationFrame(tick);
+  }
+
+  /* ---------- views ---------- */
+  function show(id) { ["shelf", "reader", "game", "done", "parent"].forEach(function (v) { $(v).hidden = v !== id; }); }
+  function goHome() { stopAudio(); renderShelf(); show("shelf"); }
+  document.querySelectorAll("[data-home]").forEach(function (b) { b.addEventListener("click", goHome); });
+
+  var starSvg = '<svg viewBox="0 0 40 38" aria-hidden="true"><use href="#i-star"/></svg>';
+
+  function renderShelf() {
+    var box = $("books"); box.innerHTML = "";
+    data.stories.forEach(function (s) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "book"; b.setAttribute("aria-label", s.title);
+      b.innerHTML = '<svg viewBox="0 0 1200 640" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' + renderScene(s.cover) + "</svg>" +
+        '<span class="t" lang="zh-CN">' + s.title + "</span>" +
+        (state.done[s.id] ? '<svg class="badge" viewBox="0 0 40 38" aria-hidden="true"><use href="#i-star" fill="#F2C14E" stroke="#D9A232" stroke-width="1.5"/></svg>' : "");
+      b.addEventListener("click", function () { openStory(s); });
+      box.appendChild(b);
+    });
+  }
+
+  /* ---------- reader ---------- */
+  var bubble = null, bubbleTimer = 0;
+  function openStory(s) {
+    story = s;
+    var a = manifest.stories[s.id];
+    pages = [{ text: s.title, scene: s.cover, audio: a.title }].concat(s.pages.map(function (p, i) { return { text: p.text, scene: p.scene, audio: a.pages[i] }; }));
+    idx = 0; show("reader"); renderPage();
+    readLine(pages[0].audio, Array.from($("line").querySelectorAll(".ch")));
+  }
+  function renderPage() {
+    stopAudio(); hideBubble(); $("speak").classList.remove("on");
+    var p = pages[idx], line = $("line");
+    $("pic").innerHTML = renderScene(p.scene);
+    fitPic();
+    line.innerHTML = "";
+    var unit = null;
+    Array.from(p.text).forEach(function (c) {
+      if (HAN.test(c)) {
+        if (!unit) { unit = document.createElement("span"); unit.className = "u"; line.appendChild(unit); }
+        var b = document.createElement("button"); b.type = "button"; b.className = "ch"; b.textContent = c;
+        b.addEventListener("click", function (e) { e.stopPropagation(); tapChar(b, c); });
+        unit.appendChild(b);
+      } else { var sp = document.createElement("span"); sp.className = "punct"; sp.textContent = c; sp.setAttribute("aria-hidden", "true"); (unit || line).appendChild(sp); unit = null; }
+    });
+    line.style.fontSize = Array.from(p.text).length > 14 ? "clamp(34px, min(5.6vw, 7.4vh), 70px)" : "";
+    $("prev").disabled = idx === 0;
+    var last = idx === pages.length - 1, nx = $("next");
+    nx.classList.toggle("to-game", last);
+    nx.innerHTML = last ? '<svg aria-hidden="true" viewBox="0 0 40 38"><use href="#i-star" fill="#F2C14E" stroke="#D9A232" stroke-width="1.5"/></svg>' : '<svg aria-hidden="true"><use href="#i-next"/></svg>';
+    nx.setAttribute("aria-label", last ? "Play the word game" : "Next page");
+    var dots = $("dots"); dots.innerHTML = "";
+    pages.forEach(function (_, i) { var d = document.createElement("span"); if (i === idx) d.className = "on"; dots.appendChild(d); });
+  }
+  /* Landscape fills the picture area; portrait shows the whole picture so nobody is cropped out. */
+  function fitPic() {
+    var box = $("pic").parentNode.getBoundingClientRect();
+    $("pic").setAttribute("preserveAspectRatio", box.width / Math.max(1, box.height) < 1.45 ? "xMidYMid meet" : "xMidYMid slice");
+  }
+  window.addEventListener("resize", fitPic);
+  function tapChar(el, c) {
+    $("speak").classList.remove("on");
+    el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop");
+    showBubble(el, c); sayChar(c);
+    state.taps[c] = (state.taps[c] || 0) + 1; save();
+  }
+  function showBubble(el, c) {
+    hideBubble();
+    var band = $("band"), r = el.getBoundingClientRect(), br = band.getBoundingClientRect();
+    bubble = document.createElement("div"); bubble.className = "bubble"; bubble.textContent = c; bubble.setAttribute("aria-hidden", "true");
+    bubble.style.left = Math.max(80, Math.min(br.width - 80, r.left - br.left + r.width / 2)) + "px";
+    bubble.style.top = (r.top - br.top - 10) + "px";
+    band.appendChild(bubble);
+    bubbleTimer = setTimeout(hideBubble, 2200);
+  }
+  function hideBubble() { clearTimeout(bubbleTimer); if (bubble) { bubble.remove(); bubble = null; } }
+  $("speak").addEventListener("click", function () {
+    var btn = $("speak");
+    if (btn.classList.contains("on")) { stopAudio(); btn.classList.remove("on"); $("line").querySelectorAll(".reading").forEach(function (e) { e.classList.remove("reading"); }); return; }
+    hideBubble(); btn.classList.add("on");
+    readLine(pages[idx].audio, Array.from($("line").querySelectorAll(".ch")), function () { btn.classList.remove("on"); });
+  });
+  $("prev").addEventListener("click", function () { if (idx > 0) { idx--; renderPage(); } });
+  $("next").addEventListener("click", function () { if (idx < pages.length - 1) { idx++; renderPage(); } else startGame(); });
+  $("reader").addEventListener("click", hideBubble);
+
+  /* ---------- game ---------- */
+  var rounds = [], ri = 0, locked = false;
+  function weight(c) { return 1 + Math.min(3, state.taps[c] || 0) + (data.known.weak.indexOf(c) > -1 ? 1 : 0); }
+  function pickWeighted(list, avoid) {
+    var pool = list.filter(function (c) { return c !== avoid; }), tot = 0;
+    pool.forEach(function (c) { tot += weight(c); });
+    var r = Math.random() * tot;
+    for (var i = 0; i < pool.length; i++) { r -= weight(pool[i]); if (r <= 0) return pool[i]; }
+    return pool[pool.length - 1];
+  }
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function buildRounds() {
+    var words = story.game, out = [], prev = null;
+    for (var i = 0; i < 6; i++) {
+      var target = pickWeighted(words, prev); prev = target;
+      var opts = shuffle([target].concat(shuffle(words.filter(function (c) { return c !== target; })).slice(0, 2)));
+      var round = { type: "listen", target: target, opts: opts };
+      if (i % 2 === 1) {
+        var cands = [];
+        story.pages.forEach(function (p, pi) { Array.from(p.text).forEach(function (c, ci) { if (c === target) cands.push({ pi: pi, ci: ci }); }); });
+        if (cands.length) { var pick = cands[Math.floor(Math.random() * cands.length)]; round.type = "fill"; round.page = pick.pi; round.pos = pick.ci; }
+      }
+      out.push(round);
+    }
+    return out;
+  }
+  function startGame() { stopAudio(); rounds = buildRounds(); ri = 0; show("game"); renderRound(); }
+  function renderProgress() {
+    var p = $("progress"); p.innerHTML = "";
+    rounds.forEach(function (_, i) { var s = document.createElement("span"); if (i < ri) s.className = "got"; s.innerHTML = starSvg; p.appendChild(s); });
+  }
+  function renderRound() {
+    locked = false; renderProgress();
+    var r = rounds[ri], prompt = $("prompt"), cards = $("cards");
+    prompt.innerHTML = ""; cards.innerHTML = "";
+    if (r.type === "listen") {
+      var b = document.createElement("button"); b.type = "button"; b.className = "big"; b.setAttribute("aria-label", "Hear the character");
+      b.innerHTML = '<svg aria-hidden="true"><use href="#i-speaker"/></svg>';
+      b.addEventListener("click", function () { sayChar(r.target); });
+      prompt.appendChild(b);
+      setTimeout(function () { if (rounds[ri] === r) sayChar(r.target); }, 450);
+    } else {
+      var s = document.createElement("div"); s.className = "sentence"; s.lang = "zh-CN";
+      var unit = null;
+      Array.from(story.pages[r.page].text).forEach(function (c, ci) {
+        var el = document.createElement("span");
+        if (ci === r.pos) { el.className = "slot"; el.id = "slot"; }
+        else { el.textContent = c; if (!HAN.test(c)) el.style.color = "#8A8178"; }
+        if (HAN.test(c)) { el.dataset.h = "1"; if (!unit) { unit = document.createElement("span"); unit.className = "u"; s.appendChild(unit); } unit.appendChild(el); }
+        else { (unit || s).appendChild(el); unit = null; }
+      });
+      prompt.appendChild(s);
+    }
+    r.opts.forEach(function (c) {
+      var b = document.createElement("button"); b.type = "button"; b.className = "card"; b.textContent = c;
+      b.addEventListener("click", function () { choose(b, c, r); });
+      cards.appendChild(b);
+    });
+  }
+  function nextRound() { ri++; if (ri >= rounds.length) finish(); else renderRound(); }
+  function choose(b, c, r) {
+    if (locked) return;
+    if (c === r.target) {
+      locked = true; b.classList.add("right");
+      var cheer = "right" + (1 + Math.floor(Math.random() * 3));
+      if (r.type === "fill") {
+        var slot = $("slot"); slot.textContent = c; slot.classList.add("filled");
+        ri++; renderProgress(); ri--;
+        var els = Array.from($("prompt").querySelectorAll("[data-h]"));
+        praise(cheer, function () { readLine(manifest.stories[story.id].pages[r.page], els, function () { setTimeout(nextRound, 500); }); });
+      } else {
+        ri++; renderProgress(); ri--;
+        sayChar(c, function () { praise(cheer, function () { setTimeout(nextRound, 300); }); });
+      }
+    } else {
+      b.classList.remove("wrong"); void b.offsetWidth; b.classList.add("wrong");
+      praise("again", function () { if (r.type === "listen") sayChar(r.target); });
+    }
+  }
+  function finish() {
+    state.done[story.id] = true; save();
+    show("done"); praise("done");
+  }
+  $("again").addEventListener("click", function () { openStory(story); });
+
+  /* ---------- grown-ups (press and hold, so little fingers don't open it by accident) ---------- */
+  var holdTimer = 0, grown = $("grown");
+  function holdStart(e) { e.preventDefault(); grown.classList.add("holding"); holdTimer = setTimeout(function () { grown.classList.remove("holding"); openParent(); }, 1000); }
+  function holdEnd() { clearTimeout(holdTimer); grown.classList.remove("holding"); }
+  grown.addEventListener("pointerdown", holdStart);
+  ["pointerup", "pointerleave", "pointercancel"].forEach(function (ev) { grown.addEventListener(ev, holdEnd); });
+  grown.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openParent(); } });
+  function openParent() {
+    var taps = $("pTaps"); taps.innerHTML = "";
+    var keys = Object.keys(state.taps).sort(function (a, b) { return state.taps[b] - state.taps[a]; });
+    if (!keys.length) taps.innerHTML = "<p>No taps yet. When he taps a character for help while reading, it shows up here.</p>";
+    keys.forEach(function (c) {
+      var s = document.createElement("span"); s.className = "chip" + (data.known.weak.indexOf(c) > -1 ? " weak" : ""); s.lang = "zh-CN";
+      s.innerHTML = c + "<small>×" + state.taps[c] + "</small>"; taps.appendChild(s);
+    });
+    var st = $("pStories"); st.innerHTML = "";
+    data.stories.forEach(function (s) {
+      var d = document.createElement("div");
+      d.innerHTML = '<span class="hz" lang="zh-CN">' + s.title + "</span><span>" + (state.done[s.id] ? "Finished, game played" : "Not finished yet") + "</span>";
+      st.appendChild(d);
+    });
+    resetRow(); show("parent");
+  }
+  function resetRow() {
+    var row = $("resetRow"); row.innerHTML = '<button class="pbtn" id="reset" type="button">Clear tap history</button>';
+    $("reset").addEventListener("click", function () {
+      row.innerHTML = '<span style="font-size:15px">Clear all taps and finished stars?</span><button class="pbtn primary" id="yes" type="button">Clear</button><button class="pbtn" id="no" type="button">Keep</button>';
+      $("yes").addEventListener("click", function () { state = { taps: {}, done: {} }; save(); openParent(); });
+      $("no").addEventListener("click", resetRow);
+    });
+  }
+  $("parentClose").addEventListener("click", goHome);
+
+  /* ---------- start ---------- */
+  Promise.all([fetch("stories.json").then(function (r) { return r.json(); }), fetch("audio/manifest.json").then(function (r) { return r.json(); })])
+    .then(function (res) { data = res[0]; manifest = res[1]; renderShelf(); })
+    .catch(function () { $("books").innerHTML = '<p class="err">The books couldn’t load. Check the connection and reopen this page.</p>'; });
+})();
+</script>

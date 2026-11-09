@@ -1,0 +1,8 @@
+<!doctype html><meta charset="utf-8"><title>Scene sheet</title>
+<style>body{margin:0;background:#ddd;font:12px system-ui}.g{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:6px}.g div{background:#fff}.g svg{width:100%;aspect-ratio:15/8;display:block}.w,.w>*,.o>*{mix-blend-mode:multiply}</style>
+<div class="g" id="g"></div>
+<script>
+const sc=document.createElement("script");sc.src="scenes.js?"+Date.now();document.head.appendChild(sc);sc.onload=()=>fetch('index.html').then(r=>r.text()).then(h=>{const m=h.match(/<defs>[\s\S]*?<\/defs>/);document.body.insertAdjacentHTML('afterbegin','<svg width="0" height="0" style="position:absolute">'+m[0]+'</svg>');
+const ids=(new URLSearchParams(location.search).get('ids')||Object.keys(SCENES).join(',')).split(',');
+document.getElementById('g').innerHTML=ids.map(id=>'<div><svg viewBox="0 0 1200 640" preserveAspectRatio="xMidYMid slice">'+renderScene(id)+'</svg>'+id+'</div>').join('');});
+</script>
