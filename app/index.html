@@ -45,10 +45,22 @@ button { font: inherit; color: inherit; }
 .grown.holding .ring circle { transition: stroke-dashoffset 1s linear; stroke-dashoffset: 0; }
 
 /* reader */
-#reader { display: grid; grid-template-rows: minmax(0, 1fr) auto; background: var(--paper); user-select: none; -webkit-user-select: none; }
+#reader { background: var(--desk); user-select: none; -webkit-user-select: none; touch-action: none; perspective: 2400px; overflow: hidden; }
+.page { position: absolute; inset: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; background: var(--paper); }
+/* Page turn: a copy of the page lifts from the left edge (the spine) and turns over, like a book. */
+.ghost { z-index: 6; pointer-events: none; transform-origin: left center; backface-visibility: hidden; -webkit-backface-visibility: hidden; will-change: transform; box-shadow: 0 0 40px rgba(60,45,20,.18); }
+.ghost::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to right, rgba(60,45,20,.28), rgba(60,45,20,0) 70%); opacity: 0; }
+.turn-out { animation: turnOut .62s cubic-bezier(.45,.05,.3,1) forwards; }
+.turn-out::after { animation: shadeIn .62s ease forwards; }
+.turn-in { animation: turnIn .62s cubic-bezier(.45,.05,.3,1) forwards; }
+.turn-in::after { animation: shadeOut .62s ease forwards; }
+@keyframes turnOut { to { transform: rotateY(-100deg); } }
+@keyframes turnIn { from { transform: rotateY(-100deg); } to { transform: rotateY(0); } }
+@keyframes shadeIn { to { opacity: 1; } }
+@keyframes shadeOut { from { opacity: 1; } to { opacity: 0; } }
 .pic { position: relative; min-height: 0; }
 .pic > svg { width: 100%; height: 100%; display: block; }
-.band { position: relative; background: var(--paper); padding: clamp(12px, 2.4vh, 26px) clamp(56px, 9vw, 110px) clamp(22px, 3.6vh, 36px); display: flex; justify-content: center; align-items: center; min-height: 22vh; }
+.band { position: relative; background: var(--paper); padding: clamp(12px, 2.4vh, 26px) clamp(92px, 13vw, 140px) clamp(22px, 3.6vh, 36px); display: flex; justify-content: center; align-items: center; min-height: 22vh; }
 .line { font-family: var(--font-hanzi); color: var(--ink); font-size: clamp(38px, min(7vw, 9vh), 84px); line-height: 1.3; display: flex; flex-wrap: wrap; justify-content: center; gap: 0 .06em; max-width: 13em; }
 .u { display: inline-flex; align-items: center; white-space: nowrap; }
 .ch { background: none; border: 0; padding: 0 .04em; margin: 0; cursor: pointer; border-radius: 12px; position: relative; font: inherit; color: inherit; }
@@ -64,11 +76,15 @@ button { font: inherit; color: inherit; }
 .rbtn.speak { top: max(14px, env(safe-area-inset-top, 0px)); right: 14px; background: var(--gold); }
 .rbtn.speak.on { animation: pulse 1s ease-in-out infinite; }
 @keyframes pulse { 50% { transform: scale(1.08) } }
-.arrow { position: absolute; top: 50%; transform: translateY(-50%); width: clamp(48px, 7vw, 70px); height: clamp(48px, 7vw, 70px); border: 0; background: none; cursor: pointer; color: #8A8178; display: grid; place-items: center; border-radius: 50%; }
-.arrow svg { width: 72%; height: 72%; }
-.arrow.prev { left: clamp(4px, 1.5vw, 18px); }
-.arrow.next { right: clamp(4px, 1.5vw, 18px); }
-.arrow.next.to-game { color: #D9A232; }
+.arrow { position: absolute; top: 50%; transform: translateY(-50%); border: 0; cursor: pointer; display: grid; place-items: center; border-radius: 50%; padding: 0; }
+.arrow svg { width: 60%; height: 60%; }
+.arrow.prev { left: clamp(8px, 2vw, 24px); width: clamp(52px, 7vw, 68px); height: clamp(52px, 7vw, 68px); background: transparent; color: #A39886; box-shadow: inset 0 0 0 2px #E2D9CA; }
+/* The next button is the big, obvious one: a yellow button sized for small fingers. */
+.arrow.next { right: clamp(8px, 2vw, 24px); width: clamp(72px, 10vw, 100px); height: clamp(72px, 10vw, 100px); background: var(--gold); color: var(--ink); box-shadow: 0 6px 0 #E3BF62; }
+.arrow.next:active { transform: translateY(calc(-50% + 3px)); box-shadow: 0 3px 0 #E3BF62; }
+.arrow.next svg { width: 58%; height: 58%; }
+.arrow.next.nudge { animation: nudge 1.4s ease-in-out 3; }
+@keyframes nudge { 0%, 60%, 100% { translate: 0 0; } 30% { translate: 10px 0; } }
 .arrow[disabled] { visibility: hidden; }
 .dots { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; justify-content: center; gap: 8px; }
 .dots span { width: 9px; height: 9px; border-radius: 50%; background: #E2D9CA; }
@@ -92,7 +108,8 @@ button { font: inherit; color: inherit; }
 .sentence .slot.filled { border-color: var(--leaf); background: #EEF5E2; }
 .sentence .reading { background: radial-gradient(closest-side, rgba(243,213,138,.95), rgba(243,213,138,.55) 70%, rgba(243,213,138,0)); border-radius: 12px; }
 .cards { position: relative; display: flex; gap: clamp(14px, 3vw, 36px); flex-wrap: wrap; justify-content: center; }
-.card { font-family: var(--font-hanzi); font-size: clamp(64px, min(11vw, 14vh), 124px); line-height: 1; color: var(--ink); width: 1.5em; height: 1.5em; display: grid; place-items: center; background: #FFFDF8; border: 0; border-radius: 20px; cursor: pointer; box-shadow: 0 0 0 2px #E4DACB, 0 7px 0 #E4DACB; }
+.card { font-family: var(--font-hanzi); font-size: clamp(64px, min(11vw, 14vh), 124px); line-height: 1; color: var(--ink); width: 1.5em; height: 1.5em; display: grid; place-items: center; padding: 0; background: #FFFDF8; border: 0; border-radius: 20px; cursor: pointer; box-shadow: 0 0 0 2px #E4DACB, 0 7px 0 #E4DACB; }
+.card .glyph { display: block; line-height: 1; transform: translateY(var(--glyph-shift, 0)); }
 .card:nth-child(1) { rotate: -3deg; } .card:nth-child(3) { rotate: 2.5deg; }
 .card.right { box-shadow: 0 0 0 5px var(--leaf), 0 7px 0 var(--leaf); background: #EEF5E2; }
 .card.wrong { animation: wobble .4s ease; }
@@ -207,6 +224,7 @@ button { font: inherit; color: inherit; }
   </section>
 
   <section id="reader" class="view" hidden aria-label="Story">
+   <div class="page" id="page">
     <div class="pic">
       <svg id="pic" viewBox="0 0 1200 640" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Story picture"></svg>
       <button class="rbtn home" data-home type="button" aria-label="Back to the bookshelf"><svg aria-hidden="true"><use href="#i-home"/></svg></button>
@@ -218,6 +236,7 @@ button { font: inherit; color: inherit; }
       <button class="arrow next" id="next" type="button" aria-label="Next page"><svg aria-hidden="true"><use href="#i-next"/></svg></button>
       <div class="dots" id="dots"></div>
     </div>
+   </div>
   </section>
 
   <section id="game" class="view" hidden aria-label="Word game">
@@ -360,6 +379,7 @@ button { font: inherit; color: inherit; }
     nx.setAttribute("aria-label", last ? "Play the word game" : "Next page");
     var dots = $("dots"); dots.innerHTML = "";
     pages.forEach(function (_, i) { var d = document.createElement("span"); if (i === idx) d.className = "on"; dots.appendChild(d); });
+    nudgeSoon(6000);
   }
   /* Pictures are 15:8. When the space is close to that shape, fill it (trimming at most a sliver);
      otherwise show the whole picture on paper, so the story's subject is never cropped out. */
@@ -388,11 +408,56 @@ button { font: inherit; color: inherit; }
     var btn = $("speak");
     if (btn.classList.contains("on")) { stopAudio(); btn.classList.remove("on"); $("line").querySelectorAll(".reading").forEach(function (e) { e.classList.remove("reading"); }); return; }
     hideBubble(); btn.classList.add("on");
-    readLine(pages[idx].audio, Array.from($("line").querySelectorAll(".ch")), function () { btn.classList.remove("on"); });
+    readLine(pages[idx].audio, Array.from($("line").querySelectorAll(".ch")), function () { btn.classList.remove("on"); nudgeSoon(400); });
   });
-  $("prev").addEventListener("click", function () { if (idx > 0) { idx--; renderPage(); } });
-  $("next").addEventListener("click", function () { if (idx < pages.length - 1) { idx++; renderPage(); } else startGame(); });
+  /* ---------- page turning: buttons and swipes ---------- */
+  var turning = false, reduceMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function ghostOf(page) {
+    var g = page.cloneNode(true);
+    g.removeAttribute("id"); g.classList.add("ghost"); g.setAttribute("aria-hidden", "true");
+    g.querySelectorAll("[id]").forEach(function (e) { if (e.tagName.toLowerCase() !== "clippath") e.removeAttribute("id"); });
+    return g;
+  }
+  function turn(dir) {
+    if (turning) return;
+    var target = idx + dir;
+    if (target < 0) return;
+    if (target >= pages.length) { startGame(); return; }
+    var page = $("page"), reader = $("reader");
+    if (reduceMotion) { idx = target; renderPage(); return; }
+    turning = true;
+    var old = ghostOf(page), parts = [old];
+    idx = target; renderPage();
+    reader.appendChild(old);
+    if (dir > 0) old.classList.add("turn-out");
+    else { var neu = ghostOf(page); parts.push(neu); reader.appendChild(neu); neu.classList.add("turn-in"); }
+    setTimeout(function () { parts.forEach(function (g) { g.remove(); }); turning = false; }, 680);
+  }
+  $("prev").addEventListener("click", function () { turn(-1); });
+  $("next").addEventListener("click", function () { turn(1); });
   $("reader").addEventListener("click", hideBubble);
+
+  /* A sideways swipe anywhere on the page turns it; a tap still works on characters and buttons. */
+  var sx = 0, sy = 0, st = 0, tracking = false, swiped = false;
+  var reader = $("reader");
+  reader.addEventListener("pointerdown", function (e) { if (!e.isPrimary) return; sx = e.clientX; sy = e.clientY; st = Date.now(); tracking = true; });
+  reader.addEventListener("pointercancel", function () { tracking = false; });
+  reader.addEventListener("pointerup", function (e) {
+    if (!tracking) return; tracking = false;
+    var dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3 && Date.now() - st < 1000) {
+      swiped = true; setTimeout(function () { swiped = false; }, 350);
+      turn(dx < 0 ? 1 : -1);
+    }
+  });
+  reader.addEventListener("click", function (e) { if (swiped) { e.stopPropagation(); e.preventDefault(); swiped = false; } }, true);
+
+  /* After a few quiet seconds, or once the page has been read aloud, the next button gives a gentle nudge. */
+  var nudgeTimer = 0;
+  function nudgeSoon(ms) {
+    var nx = $("next"); clearTimeout(nudgeTimer); nx.classList.remove("nudge");
+    nudgeTimer = setTimeout(function () { void nx.offsetWidth; nx.classList.add("nudge"); }, ms);
+  }
 
   /* ---------- game ---------- */
   var rounds = [], ri = 0, locked = false;
@@ -420,7 +485,23 @@ button { font: inherit; color: inherit; }
     }
     return out;
   }
-  function startGame() { stopAudio(); rounds = buildRounds(); ri = 0; show("game"); renderRound(); }
+  function startGame() { stopAudio(); clearTimeout(nudgeTimer); measureGlyphs(); rounds = buildRounds(); ri = 0; show("game"); renderRound(); }
+  /* Kai fonts draw characters lower or higher than the middle of the space they reserve. Measure where the
+     ink actually sits in whichever font this device uses, and shift card characters so the ink is centred. */
+  function measureGlyphs() {
+    try {
+      var fam = getComputedStyle(document.documentElement).getPropertyValue("--font-hanzi").trim();
+      var ctx = document.createElement("canvas").getContext("2d"), m, sum = 0, n = 0;
+      ctx.font = "100px " + fam;
+      Array.from("在有里我大小").forEach(function (ch) {
+        m = ctx.measureText(ch);
+        if (!(m.fontBoundingBoxAscent > 0) || !(m.actualBoundingBoxAscent > 0)) return;
+        var baseline = (100 - (m.fontBoundingBoxAscent + m.fontBoundingBoxDescent)) / 2 + m.fontBoundingBoxAscent;
+        sum += 50 - (baseline - (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2); n++;
+      });
+      if (n) document.documentElement.style.setProperty("--glyph-shift", (sum / n / 100).toFixed(3) + "em");
+    } catch (e) {}
+  }
   function renderProgress() {
     var p = $("progress"); p.innerHTML = "";
     rounds.forEach(function (_, i) { var s = document.createElement("span"); if (i < ri) s.className = "got"; s.innerHTML = starSvg; p.appendChild(s); });
@@ -448,7 +529,8 @@ button { font: inherit; color: inherit; }
       prompt.appendChild(s);
     }
     r.opts.forEach(function (c) {
-      var b = document.createElement("button"); b.type = "button"; b.className = "card"; b.textContent = c;
+      var b = document.createElement("button"); b.type = "button"; b.className = "card"; b.setAttribute("aria-label", c);
+      var g = document.createElement("span"); g.className = "glyph"; g.textContent = c; g.setAttribute("aria-hidden", "true"); b.appendChild(g);
       b.addEventListener("click", function () { choose(b, c, r); });
       cards.appendChild(b);
     });
