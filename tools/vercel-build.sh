@@ -13,16 +13,16 @@ done
 
 if [ -n "$PY" ] && "$PY" -m venv .venv >/dev/null 2>&1 && [ -x .venv/bin/pip ]; then
   echo "Using $PY with a virtual environment"
-  .venv/bin/pip install --quiet -r tools/requirements.txt
+  .venv/bin/pip install --quiet -r tools/build-deps.txt
   RUN=".venv/bin/python"
 elif command -v uv >/dev/null 2>&1; then
   echo "Using uv"
   uv venv --quiet --python 3.12 .venv
-  uv pip install --quiet --python .venv/bin/python -r tools/requirements.txt
+  uv pip install --quiet --python .venv/bin/python -r tools/build-deps.txt
   RUN=".venv/bin/python"
 elif [ -n "$PY" ]; then
   echo "Using $PY with pip --user"
-  "$PY" -m pip install --quiet --user -r tools/requirements.txt
+  "$PY" -m pip install --quiet --user -r tools/build-deps.txt
   RUN="$PY"
 else
   echo "No Python or uv found on the build machine." >&2

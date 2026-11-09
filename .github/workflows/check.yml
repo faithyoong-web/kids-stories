@@ -13,13 +13,13 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: tools/requirements.txt
+          cache-dependency-path: tools/build-deps.txt
       - name: Cache the font download
         uses: actions/cache@v4
         with:
           path: tools/fonts/LXGWWenKaiGB-Regular.ttf
           key: font-wenkai-gb-v1.530
-      - run: pip install -r tools/requirements.txt
+      - run: pip install -r tools/build-deps.txt
       - name: Stories use only learned characters
         run: python tools/check_vocab.py
       - name: Audio matches the stories

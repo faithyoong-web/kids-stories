@@ -34,7 +34,7 @@ whole page with the words lighting up as they're read, and finish each story wit
 3. Record the audio on a Mac (it isn't recorded in the cloud):
 
    ```bash
-   python3 -m venv .venv && .venv/bin/pip install -r tools/requirements-dev.txt
+   python3 -m venv .venv && .venv/bin/pip install -r tools/dev-deps.txt
    .venv/bin/python tools/gen_audio.py app/stories.json app/audio
    ```
 

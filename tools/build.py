@@ -6,7 +6,7 @@
 Both inline scenes.js and embed the Kai font (LXGW WenKai GB, SIL Open Font License, tools/fonts/OFL.txt),
 cut down to only the characters in app/stories.json, so it stays a few kilobytes.
 The font file is downloaded from its official release on first run and checked against a pinned hash.
-Needs fontTools + brotli (pip install -r tools/requirements.txt).
+Needs fontTools + brotli (pip install -r tools/build-deps.txt).
 """
 import base64, hashlib, io, json, pathlib, re, shutil, sys, urllib.request
 
