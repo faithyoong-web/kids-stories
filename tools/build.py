@@ -69,7 +69,7 @@ def page(data):
 SW = """/* Offline support: keeps every page, picture and sound on the device after the first visit. */
 const CACHE = "reader-%s";
 const FILES = %s;
-self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
+self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES.map(f => new Request(f, { cache: "reload" })))).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
@@ -111,11 +111,27 @@ HEAD = """<!doctype html>
 """
 
 
+REGISTER = """<script>
+if ("serviceWorker" in navigator) {
+  /* A new version was published: switch to it, but only while the bookshelf is showing, never mid-story. */
+  var hadWorker = !!navigator.serviceWorker.controller, updated = false;
+  navigator.serviceWorker.addEventListener("controllerchange", function () {
+    if (!hadWorker || updated) return;
+    updated = true;
+    var shelf = document.getElementById("shelf");
+    if (!shelf.hidden) location.reload();
+    else new MutationObserver(function () { if (!shelf.hidden) location.reload(); }).observe(shelf, { attributes: true });
+  });
+  navigator.serviceWorker.register("sw.js").catch(function () {});
+}
+</script>
+"""
+
+
 def build_web(data):
     html = page(data).replace('<meta name="claude:viewport-fit-sides" content="cover">\n', "")
     cut = html.index("</style>") + len("</style>")
-    html = HEAD + html[:cut] + "\n</head>\n<body>\n" + html[cut:].lstrip() + \
-        '\n<script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});</script>\n</body>\n</html>\n'
+    html = HEAD + html[:cut] + "\n</head>\n<body>\n" + html[cut:].lstrip() + "\n" + REGISTER + "</body>\n</html>\n"
     html = html.replace('<section id="parent" class="view"', '<section id="parent" lang="en" class="view"', 1)
     if DIST.exists():
         shutil.rmtree(DIST)

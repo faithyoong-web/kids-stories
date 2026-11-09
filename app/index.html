@@ -361,10 +361,11 @@ button { font: inherit; color: inherit; }
     var dots = $("dots"); dots.innerHTML = "";
     pages.forEach(function (_, i) { var d = document.createElement("span"); if (i === idx) d.className = "on"; dots.appendChild(d); });
   }
-  /* Landscape fills the picture area; portrait shows the whole picture so nobody is cropped out. */
+  /* Pictures are 15:8. When the space is close to that shape, fill it (trimming at most a sliver);
+     otherwise show the whole picture on paper, so the story's subject is never cropped out. */
   function fitPic() {
-    var box = $("pic").parentNode.getBoundingClientRect();
-    $("pic").setAttribute("preserveAspectRatio", box.width / Math.max(1, box.height) < 1.45 ? "xMidYMid meet" : "xMidYMid slice");
+    var box = $("pic").parentNode.getBoundingClientRect(), r = box.width / Math.max(1, box.height);
+    $("pic").setAttribute("preserveAspectRatio", r >= 1.75 && r <= 2.0 ? "xMidYMid slice" : "xMidYMid meet");
   }
   window.addEventListener("resize", fitPic);
   function tapChar(el, c) {
