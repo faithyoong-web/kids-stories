@@ -29,7 +29,9 @@ def main(path):
             print(f"UNKNOWN  {c}  in {sid}: {t}")
         sys.exit(1)
     print(f"OK: {len(data['stories'])} stories use only his {len(known)} known characters.")
-    print("Weak words:", "  ".join(f"{c}×{counts[c]}" for c in k["weak"]))
+    if k["weak"]:
+        print("Unsure words:", "  ".join(f"{c}×{counts[c]}" for c in k["weak"]))
+    print("New and least-practised:", "  ".join(f"{c}×{counts[c]}" for c in sorted(known, key=lambda c: counts[c])[:12]))
     unused = [c for c in k["ihuman"] + k["extra"] if counts[c] == 0]
     print("Not used yet:", " ".join(unused) or "none")
 

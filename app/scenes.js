@@ -237,13 +237,24 @@
     s += W(P(body, k.shirt, 0.92), "wcS");
     var arms = o.arms || [12, 12], arm = "", hands = "";
     [-1, 1].forEach(function (side, i) {
+      if (arms[i] === null) return;
       var a = armPath(side * (w - 8), k.shoulder, side, arms[i], k.arm);
       arm += L(a.d, k.shirt, k.bodyW * 0.24, 0.95);
       hands += C(a.x, a.y, k.bodyW * 0.12, SKIN, 0.95);
+
       if (o.hands) o.hands.push([a.x, a.y]);
     });
     s += Bn(arm) + W(hands, "wcS");
-    return { body: s, head: head(kind, 0, k.headCy, k.r, o.mood || "smile", o.look) };
+    var over = "";
+    if (o.coverMouth) {
+      /* A palm over the mouth: the sleeve rises from below the chin, four fingers point up, the thumb tucks in. */
+      var my = k.headCy + k.r * 0.54, pw = k.r * 0.62, ph = k.r * 0.56, fingers = "", edge = "";
+      over += Bn(L("M" + (w - 6) + " " + (k.shoulder + 8) + " Q " + (w * 0.7) + " " + (k.headCy + k.r * 1.25) + " " + (pw * 0.15) + " " + (my + ph * 0.45), k.shirt, k.bodyW * 0.26, 0.98));
+      for (var j = 0; j < 4; j++) { var fx = -pw * 0.375 + j * pw * 0.25; fingers += E(fx, my - ph * 0.28, pw * 0.13, ph * 0.3, SKIN, 0.98); edge += L("M" + (fx - pw * 0.13) + " " + (my - ph * 0.2) + " a" + pw * 0.13 + " " + ph * 0.3 + " 0 0 1 " + pw * 0.26 + " 0", "#C08E6E", 2, 0.9); }
+      over += W(R(-pw / 2, my - ph * 0.3, pw, ph * 0.78, SKIN, 0.98, pw * 0.3) + fingers + E(-pw * 0.56, my + ph * 0.06, pw * 0.14, ph * 0.26, SKIN, 0.98, -35), "wcS") + edge +
+        L("M" + (-pw / 2) + " " + (my - ph * 0.1) + " v " + ph * 0.42 + " q 0 " + ph * 0.18 + " " + pw * 0.3 + " " + ph * 0.18 + " h " + pw * 0.4 + " q " + pw * 0.3 + " 0 " + pw * 0.3 + " " + (-ph * 0.18) + " v " + (-ph * 0.42), "#C08E6E", 2, 0.9);
+    }
+    return { body: s, head: head(kind, 0, k.headCy, k.r, o.mood || "smile", o.look) + over };
   }
   function fig(kind, x, y, sc, o) { var p = person(kind, o); return T(x, y, sc, p.body + p.head); }
   /* Seated in a box: the hip sits 20px above the box bottom, so only the upper body shows. */
@@ -402,6 +413,139 @@
   };
   S["train-7"] = function () {
     return room(true) + door(960, 170, 180, 310, false) + trainRow(0.85, 40, { units: ["cow", "sheep", "mom", "dad"], adultArms: [150, 20], mood: "joy" }) + engine(720, 600, 0.85) + fig("boy", 880, 610, 1.0, { arms: [150, 12], mood: "joy" });
+  };
+
+  /* ---------- horses, hands and the freeze game ---------- */
+  var WHITE = "#F6F3EC", LINE = "#B3A994", MANE = "#9AA3AB";
+  function outlined(d, w) { return Bn(L(d, LINE, w + 6, 0.9) + L(d, WHITE, w, 1)); }
+  /* A white horse seen from the side, facing right, standing on y = 0. o.rocker gives it wooden rockers and a
+     saddle; o.legUp lifts a front hoof; o.rider seats the boy; o.flip turns it to face left. */
+  function horse(x, y, s, o) {
+    o = o || {}; var g = "";
+    var foot = o.rocker ? -24 : -6;
+    var legs = o.rocker
+      ? [["M-62 -128 L-118 " + foot], ["M-40 -128 L-88 " + foot], ["M44 -128 L92 " + foot], ["M64 -128 L120 " + foot]]
+      : [["M-70 -128 L-74 " + foot], ["M-48 -128 L-46 " + foot], ["M50 -128 L52 " + foot], o.legUp ? ["M72 -128 L100 -84 L82 -58"] : ["M72 -128 L76 " + foot]];
+    g += B(L("M-106 -166 C -150 -150, -160 -110, -146 -78", MANE, 16, 0.95));
+    legs.forEach(function (l) { g += outlined(l[0], 17); });
+    if (!o.rocker) legs.forEach(function (l) { var m = /L(-?\d+) (-?\d+)$/.exec(l[0]); if (m) g += W(E(+m[1], +m[2] + 2, 11, 6, "#6B5E52", 0.95)); });
+    g += W(E(0, -150, 112, 48, WHITE, 0.98)) + B(L("M-112 -150 a112 48 0 1 0 224 0 a112 48 0 1 0 -224 0", LINE, 4, 0.8));
+    g += W(P("M58 -182 L106 -262 L146 -248 L112 -136 Z", WHITE, 0.98)) + B(L("M58 -182 L106 -262 M146 -248 L112 -136", LINE, 4, 0.8));
+    g += W(E(152, -244, 46, 25, WHITE, 0.98, 35)) + B(L("M120 -270 a46 25 35 1 0 64 52", LINE, 4, 0.7));
+    g += W(P("M118 -268 L124 -296 L138 -272 Z", WHITE, 0.98)) + B(L("M118 -268 L124 -296 L138 -272", LINE, 3, 0.8));
+    g += B(L("M104 -270 C 92 -240, 76 -210, 62 -180", MANE, 15, 0.95));
+    g += C(142, -256, 5, INK, 1) + C(182, -222, 3, "#8A7F73", 1) + L("M164 -212 q 8 6 16 2", INK, 3, 0.8) + E(150, -236, 8, 5, CHEEK, 0.45);
+    if (o.rocker || o.rider) g += W(R(-40, -204, 80, 30, "#C8553D", 0.95, 10));
+    if (o.rocker) g += Bn(L("M-176 -34 Q 0 22 176 -34", "#A97C4D", 16, 1)) + Bn(L("M120 -250 l -26 -8", "#A97C4D", 7, 1));
+    if (o.rider) { var b = person("boy", { legs: "straddle", arms: o.rider.arms || [150, 150], mood: o.rider.mood || "grin" }); g += T(0, -204 + 72, 1, b.body + b.head); }
+    var inner = o.flip ? '<g transform="scale(-1 1)">' + g + "</g>" : g;
+    return T(x, y, s, inner, o.rot);
+  }
+  function fist(cx, cy, r, sleeve, lean) {
+    var sx = cx + (lean || 0) * r * 2.2;
+    return B(L("M" + sx + " 700 L" + cx + " " + (cy + r * 0.4), sleeve, r * 1.15, 0.97)) +
+      W(E(cx, cy, r, r * 0.84, SKIN, 0.97), "wcS") +
+      L("M" + (cx - r * 0.62) + " " + (cy - r * 0.2) + " q " + r * 0.2 + " " + (-r * 0.22) + " " + r * 0.4 + " 0 q " + r * 0.2 + " " + (-r * 0.22) + " " + r * 0.4 + " 0 q " + r * 0.2 + " " + (-r * 0.22) + " " + r * 0.4 + " 0", "#B9876A", Math.max(2, r * 0.06), 0.9) +
+      L("M" + (cx - r * 0.7) + " " + (cy + r * 0.25) + " q " + r * 0.5 + " " + r * 0.25 + " " + r * 1.1 + " " + r * 0.05, "#B9876A", Math.max(2, r * 0.06), 0.9);
+  }
+  /* Two open hands cupped together; whatever is drawn just before sits in the bowl. */
+  function palms(cx, cy, w, sleeve) {
+    return B(L("M" + (cx - w * 0.75) + " 700 L" + (cx - w * 0.55) + " " + (cy + w * 0.45), sleeve, w * 0.6, 0.97) + L("M" + (cx + w * 0.75) + " 700 L" + (cx + w * 0.55) + " " + (cy + w * 0.45), sleeve, w * 0.6, 0.97)) +
+      W(P("M" + (cx - w) + " " + (cy - w * 0.04) + " C " + (cx - w) + " " + (cy + w * 0.72) + ", " + (cx + w) + " " + (cy + w * 0.72) + ", " + (cx + w) + " " + (cy - w * 0.04) +
+        " C " + (cx + w * 0.6) + " " + (cy + w * 0.16) + ", " + (cx - w * 0.6) + " " + (cy + w * 0.16) + ", " + (cx - w) + " " + (cy - w * 0.04) + " Z", SKIN, 0.98), "wcS") +
+      L("M" + cx + " " + (cy + w * 0.14) + " L" + cx + " " + (cy + w * 0.52) + " M" + (cx - w * 0.96) + " " + (cy + w * 0.02) + " q " + w * 0.1 + " " + (-w * 0.12) + " " + w * 0.2 + " " + (-w * 0.04) + " M" + (cx + w * 0.96) + " " + (cy + w * 0.02) + " q " + (-w * 0.1) + " " + (-w * 0.12) + " " + (-w * 0.2) + " " + (-w * 0.04), "#B9876A", Math.max(2, w * 0.03), 0.85);
+  }
+  function papaya(cx, cy, s) {
+    return T(cx, cy, s, W(P("M0 -62 C 42 -62 52 8 32 44 C 18 66 -18 66 -32 44 C -52 8 -42 -62 0 -62 Z", "#E9A23B", 0.97) + E(0, -42, 24, 18, "#9CB55A", 0.7)) +
+      Wn(E(-16, -20, 10, 18, "#F7D58C", 0.6, 15)) + B(L("M0 -62 q 4 -14 12 -18", "#7A5638", 5, 0.95)));
+  }
+  function dirt(cx, cy, w) {
+    seed = 3; var crumbs = "";
+    for (var i = 0; i < 9; i++) crumbs += C(cx + (rnd() - 0.5) * w * 1.6, cy + (rnd() - 0.2) * w * 0.4, w * 0.05 + rnd() * w * 0.04, "#6E4E33", 0.9);
+    return W(P("M" + (cx - w * 0.8) + " " + (cy + w * 0.2) + " C " + (cx - w * 0.6) + " " + (cy - w * 0.5) + ", " + (cx + w * 0.6) + " " + (cy - w * 0.5) + ", " + (cx + w * 0.8) + " " + (cy + w * 0.2) + " Z", "#8C6440", 0.97) + crumbs);
+  }
+  function wall() { return W(P("M-10 -10 H1210 V660 H-10 Z", "#EADBC3", 0.72)) + W(R(860, 70, 230, 170, "#C6DDE7", 0.85, 6)) + B(L("M860 70 h230 v170 h-230 Z M975 70 v170", "#9E8160", 6, 0.8)); }
+  /* An open front door seen from inside: the garden shows through and the door has swung into the room. */
+  function openDoor(x, y, w, h, inside) {
+    var id = uid();
+    return W(R(x - 14, y - 14, w + 28, h + 14, "#E2CFAE", 0.9, 4)) +
+      '<clipPath id="' + id + '"><rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '"/></clipPath>' +
+      '<g clip-path="url(#' + id + ')">' + W(R(x, y, w, h, "#C6DDE7", 0.9, 0)) + W(P("M" + x + " " + (y + h * 0.62) + " Q " + (x + w / 2) + " " + (y + h * 0.56) + " " + (x + w) + " " + (y + h * 0.6) + " L" + (x + w) + " " + (y + h) + " L" + x + " " + (y + h) + " Z", "#B9CD8B", 0.95)) + (inside || "") + "</g>" +
+      W(P("M" + (x + w) + " " + y + " L" + (x + w + 70) + " " + (y + 26) + " L" + (x + w + 70) + " " + (y + h - 22) + " L" + (x + w) + " " + (y + h) + " Z", "#B5653F", 0.95)) + C(x + w + 56, y + h * 0.55, 7, "#E3B65B", 1);
+  }
+  function windL(x, y, s) { return '<g transform="translate(' + 2 * x + ' 0) scale(-1 1)">' + wind(x, y, s) + "</g>"; }
+  function leaves(list) { return W(list.map(function (l) { return E(l[0], l[1], 16, 8, "#86A957", 0.9, l[2]); }).join("")); }
+  /* Freeze-game poses. */
+  var HANDS_ON_HEAD = [[150, 232], [150, 232]], HOLD = [[20, 80], [20, 80]], HAND_ON_MOUTH = [12, null];
+  function momWithMelon(x, y, sc, mood, look) { return fig("mom", x, y, sc, { arms: HOLD, mood: mood || "grin", look: look }) + melon(x, y - 182 * sc, 96 * sc, 72 * sc, { noShadow: true }); }
+  function frozenFamily(sc, x0, mood, look) {
+    return fig("dad", x0, 600, sc, { arms: HANDS_ON_HEAD, mood: mood || "grin", look: look }) + momWithMelon(x0 + 230 * sc, 600, sc, mood, look) +
+      fig("boy", x0 + 420 * sc, 600, sc * 1.05, { arms: HAND_ON_MOUTH, coverMouth: true, mood: "smile", look: look });
+  }
+
+  /* 我的小木马 */
+  S["horse-1"] = function () { return room() + horse(720, 600, 1.15, { rocker: true }) + fig("boy", 360, 600, 1.05, { arms: [12, 80], mood: "grin", look: 1 }); };
+  S["horse-2"] = function () { return room(true) + horse(560, 640, 1.9, { rocker: true }); };
+  S["horse-3"] = function () { return room() + horse(600, 600, 1.3, { rocker: true, rider: { arms: [150, 150], mood: "joy" } }); };
+  S["horse-4"] = function () {
+    return sky() + sun() + hills(300) + W(P("M-20 660 C 160 600, 360 360, 600 330 C 840 360, 1040 600, 1230 660 Z", "#B9CD8B", 0.92)) +
+      B(L("M330 300 q -40 10 -80 0 M320 340 q -40 10 -80 0", "#9E8160", 5, 0.55)) + birds([[180, 120], [240, 150], [900, 110]]) + tufts([[200, 600], [900, 590], [1100, 630]]) +
+      horse(600, 360, 0.95, { rocker: true, rot: -12, rider: { arms: [150, 120], mood: "joy" } });
+  };
+  S["horse-5"] = function () {
+    var drops = Wn([[560, 380], [600, 350], [640, 372], [820, 360], [860, 386], [880, 340]].map(function (d) { return E(d[0], d[1], 7, 11, "#8EBDCA", 0.95); }).join(""));
+    return sky() + sun(170, 100, 50) + hills(300, "#AFC6B9") + ground(400, "#C9D79B") +
+      W(P("M-20 440 L520 430 L560 660 L-20 660 Z", "#9CC27A", 0.85)) + B(L("M-20 440 L520 430 L560 660 M260 435 L280 660 M-20 540 L540 535", "#D9C08F", 18, 0.85)) +
+      W(P("M520 420 C 700 410, 1000 430, 1230 420 L1230 660 L560 660 Z", "#8EBDCA", 0.88)) + B(L("M640 470 h120 M900 520 h140 M700 600 h150", "#F5F9F7", 5, 0.85)) +
+      horse(760, 560, 0.95, { rocker: true, rot: 8, rider: { arms: [120, 150], mood: "joy" } }) + ripples(760, 560, 170) + drops;
+  };
+  S["horse-6"] = function () {
+    return sky("#B9C4CC") + cloud(260, 90, 1.3, "#9AA6AF", 0.8) + cloud(820, 70, 1.5, "#A5B0B8", 0.8) + hills(320, "#9FB5AC") + ground(470, "#AFC291") +
+      rain(90, 0, 1200, 120, 620) + windL(1050, 230, 1) + windL(1120, 330, 0.8) +
+      horse(560, 580, 1.1, { rocker: true, rot: -6, rider: { arms: [[60, 100], [60, 100]], mood: "grin" } });
+  };
+  S["horse-7"] = function () {
+    return room(true) + openDoor(110, 160, 200, 320) + fig("mom", 210, 600, 1.0, { arms: [12, 150], mood: "joy", look: 1 }) +
+      horse(640, 600, 1.05, { rocker: true }) + fig("boy", 920, 600, 1.05, { arms: [150, 40], mood: "grin", look: -1 });
+  };
+
+  /* 大手，小手 */
+  function handsScene(who, open, thing) {
+    var k = { dad: { r: 100, shirt: "#6E9C9A", w: 200, fr: 84 }, mom: { r: 96, shirt: "#E9B95B", w: 190, fr: 80 }, boy: { r: 88, shirt: "#E07B5A", w: 150, fr: 64 } }[who];
+    var s = wall(), cy = who === "boy" ? 230 : 200;
+    if (who === "boy") s += bust("dad", 170, 400, 84, open ? "open" : "o", 1) + bust("mom", 1040, 400, 80, open ? "grin" : "o", -1);
+    else s += bust("boy", 1040, 440, 72, open ? "joy" : "o", -1);
+    s += bust(who, 600, cy, k.r, open ? "joy" : "grin", 0);
+    var hy = who === "boy" ? 500 : 480;
+    if (open) s += (thing || "") + palms(600, hy, k.w, k.shirt);
+    else s += fist(600 - k.fr * 1.35, hy, k.fr, k.shirt, -0.6) + fist(600 + k.fr * 1.35, hy, k.fr, k.shirt, 0.6);
+    return s;
+  }
+  S["hands-1"] = function () { return handsScene("dad", false); };
+  S["hands-2"] = function () { return handsScene("dad", true, papaya(600, 440, 1.7)); };
+  S["hands-3"] = function () { return handsScene("mom", false); };
+  S["hands-4"] = function () { return handsScene("mom", true, sheep(585, 450, 1.0, true)); };
+  S["hands-5"] = function () { return handsScene("boy", false); };
+  S["hands-6"] = function () { return handsScene("boy", true, dirt(600, 470, 120)); };
+  S["hands-7"] = function () {
+    return sky() + sun() + hills(330) + ground(470) + tree(1020, 560, 1.1) + tufts([[150, 600], [820, 610]]) +
+      fig("mom", 520, 600, 1.0, { arms: [12, 9.4], mood: "joy", look: 1 }) + fig("boy", 660, 600, 1.0, { arms: [105, 12], mood: "joy", look: -1 }) +
+      W(C(573, 458, 15, SKIN, 0.98), "wcS");
+  };
+
+  /* 木头人 */
+  S["freeze-1"] = function () { return room() + frozenFamily(1.0, 300); };
+  S["freeze-2"] = function () { return room(true) + fig("dad", 600, 650, 1.45, { arms: HANDS_ON_HEAD, mood: "grin" }); };
+  S["freeze-3"] = function () { return room(true) + momWithMelon(600, 650, 1.45, "grin"); };
+  S["freeze-4"] = function () { return room(true) + fig("boy", 600, 660, 2.0, { arms: HAND_ON_MOUTH, coverMouth: true, mood: "smile" }); };
+  S["freeze-5"] = function () {
+    return room(true) + openDoor(900, 160, 200, 320) + windL(760, 250, 0.9) + windL(820, 330, 0.7) + leaves([[700, 230, -20], [640, 300, 30], [780, 380, -40], [560, 260, 10]]) + frozenFamily(0.8, 140, "o", 1);
+  };
+  S["freeze-6"] = function () {
+    return room(true) + openDoor(900, 160, 200, 320, horse(1010, 470, 0.62, { flip: true })) + frozenFamily(0.8, 140, "o", 1);
+  };
+  S["freeze-7"] = function () {
+    return room(true) + openDoor(1000, 160, 170, 320) + frozenFamily(0.8, 100, "joy", 1) + horse(860, 600, 0.95, { flip: true, legUp: true });
   };
 
   window.SCENES = S;

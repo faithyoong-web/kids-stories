@@ -272,7 +272,7 @@ button { font: inherit; color: inherit; }
       </div>
       <div>
         <h2>Characters he tapped for help</h2>
-        <p style="margin-bottom:12px">Most-tapped first. A red outline marks the words he's still unsure of (我 里 在 有). Taps are saved on this device only.</p>
+        <p style="margin-bottom:12px">Most-tapped first. A red outline marks any characters listed as unsure in the word list. Taps are saved on this device only.</p>
         <div class="chips" id="pTaps"></div>
       </div>
       <div>
@@ -350,6 +350,12 @@ button { font: inherit; color: inherit; }
   /* ---------- reader ---------- */
   var bubble = null, bubbleTimer = 0;
   function openStory(s) {
+    if (!manifest.stories[s.id]) {
+      /* The audio list is older than the story list: fetch it again, then open the book. */
+      fetch("audio/manifest.json", { cache: "reload" }).then(function (r) { return r.json(); })
+        .then(function (m) { manifest = m; if (m.stories[s.id]) openStory(s); }).catch(function () {});
+      return;
+    }
     story = s;
     var a = manifest.stories[s.id];
     pages = [{ text: s.title, scene: s.cover, audio: a.title }].concat(s.pages.map(function (p, i) { return { text: p.text, scene: p.scene, audio: a.pages[i] }; }));
@@ -595,7 +601,8 @@ button { font: inherit; color: inherit; }
   $("parentClose").addEventListener("click", goHome);
 
   /* ---------- start ---------- */
-  Promise.all([fetch("stories.json").then(function (r) { return r.json(); }), fetch("audio/manifest.json").then(function (r) { return r.json(); })])
+  /* Always check with the server, so the story list and its audio list never come from different versions. */
+  Promise.all([fetch("stories.json", { cache: "no-cache" }).then(function (r) { return r.json(); }), fetch("audio/manifest.json", { cache: "no-cache" }).then(function (r) { return r.json(); })])
     .then(function (res) { data = res[0]; manifest = res[1]; renderShelf(); })
     .catch(function () { $("books").innerHTML = '<p class="err">The books couldn’t load. Check the connection and reopen this page.</p>'; });
 })();

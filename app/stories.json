@@ -2,69 +2,313 @@
   "known": {
     "ihuman_through": 30,
     "ihuman": "一二三人个大山上下小雨天车开火门口月羊只有牛水中风头田土里在",
-    "extra": "爸妈的我飞瓜",
-    "weak": "我里在有"
+    "extra": "爸妈的我飞瓜日白马手木",
+    "weak": ""
   },
   "stories": [
+    {
+      "id": "horse",
+      "title": "我的小木马",
+      "cover": "horse-4",
+      "game": [
+        "木",
+        "马",
+        "白",
+        "上",
+        "下",
+        "在"
+      ],
+      "pages": [
+        {
+          "text": "我有一个小木马。",
+          "scene": "horse-1"
+        },
+        {
+          "text": "小木马，白白的。",
+          "scene": "horse-2"
+        },
+        {
+          "text": "我上马！",
+          "scene": "horse-3"
+        },
+        {
+          "text": "小木马上山，下山。",
+          "scene": "horse-4"
+        },
+        {
+          "text": "小木马在田里，在水里。",
+          "scene": "horse-5"
+        },
+        {
+          "text": "风大，雨大，我在木马上。",
+          "scene": "horse-6"
+        },
+        {
+          "text": "妈妈开门，我下马。",
+          "scene": "horse-7"
+        }
+      ]
+    },
+    {
+      "id": "hands",
+      "title": "大手，小手",
+      "cover": "hands-7",
+      "game": [
+        "手",
+        "里",
+        "有",
+        "大",
+        "小",
+        "的"
+      ],
+      "pages": [
+        {
+          "text": "爸爸的大手里有……",
+          "scene": "hands-1"
+        },
+        {
+          "text": "一个小木瓜！",
+          "scene": "hands-2"
+        },
+        {
+          "text": "妈妈的大手里有……",
+          "scene": "hands-3"
+        },
+        {
+          "text": "一只小白羊！",
+          "scene": "hands-4"
+        },
+        {
+          "text": "我的小手里有……",
+          "scene": "hands-5"
+        },
+        {
+          "text": "土！",
+          "scene": "hands-6"
+        },
+        {
+          "text": "我的小手在妈妈的大手里。",
+          "scene": "hands-7"
+        }
+      ]
+    },
+    {
+      "id": "freeze",
+      "title": "木头人",
+      "cover": "freeze-1",
+      "game": [
+        "木",
+        "头",
+        "人",
+        "手",
+        "口",
+        "门"
+      ],
+      "pages": [
+        {
+          "text": "一、二、三，木头人！",
+          "scene": "freeze-1"
+        },
+        {
+          "text": "爸爸的大手在头上。",
+          "scene": "freeze-2"
+        },
+        {
+          "text": "妈妈的手里有一个大瓜。",
+          "scene": "freeze-3"
+        },
+        {
+          "text": "我的小手在口上。",
+          "scene": "freeze-4"
+        },
+        {
+          "text": "大风！门开！",
+          "scene": "freeze-5"
+        },
+        {
+          "text": "门口有小白马！",
+          "scene": "freeze-6"
+        },
+        {
+          "text": "小白马，木头人！",
+          "scene": "freeze-7"
+        }
+      ]
+    },
     {
       "id": "melon",
       "title": "小瓜下山",
       "cover": "melon-3",
-      "game": ["在", "里", "有", "瓜", "水", "下"],
+      "game": [
+        "在",
+        "里",
+        "有",
+        "瓜",
+        "水",
+        "下"
+      ],
       "pages": [
-        { "text": "山上有一个瓜田。", "scene": "melon-1" },
-        { "text": "瓜田里有三个瓜：大瓜、中瓜、小瓜。", "scene": "melon-2" },
-        { "text": "风大！小瓜下山。", "scene": "melon-3" },
-        { "text": "小瓜在田里。", "scene": "melon-4" },
-        { "text": "小瓜在水里。", "scene": "melon-5" },
-        { "text": "小瓜在车上。车开下山。", "scene": "melon-6" },
-        { "text": "车在门口。我开门……", "scene": "melon-7" },
-        { "text": "门口有一个小瓜！", "scene": "melon-8" }
+        {
+          "text": "山上有一个瓜田。",
+          "scene": "melon-1"
+        },
+        {
+          "text": "瓜田里有三个瓜：大瓜、中瓜、小瓜。",
+          "scene": "melon-2"
+        },
+        {
+          "text": "风大！小瓜下山。",
+          "scene": "melon-3"
+        },
+        {
+          "text": "小瓜在田里。",
+          "scene": "melon-4"
+        },
+        {
+          "text": "小瓜在水里。",
+          "scene": "melon-5"
+        },
+        {
+          "text": "小瓜在车上。车开下山。",
+          "scene": "melon-6"
+        },
+        {
+          "text": "车在门口。我开门……",
+          "scene": "melon-7"
+        },
+        {
+          "text": "门口有一个小瓜！",
+          "scene": "melon-8"
+        }
       ]
     },
     {
       "id": "big",
       "title": "爸爸大，我小",
       "cover": "big-5",
-      "game": ["我", "大", "小", "的", "头", "在"],
+      "game": [
+        "我",
+        "大",
+        "小",
+        "的",
+        "头",
+        "在"
+      ],
       "pages": [
-        { "text": "爸爸大，我小。", "scene": "big-1" },
-        { "text": "爸爸的头大，我的头小。", "scene": "big-2" },
-        { "text": "爸爸的口大，我的口小。", "scene": "big-3" },
-        { "text": "爸爸有大车，我有小车。", "scene": "big-4" },
-        { "text": "爸爸在下，我在上！", "scene": "big-5" },
-        { "text": "我大，爸爸小！", "scene": "big-6" }
+        {
+          "text": "爸爸大，我小。",
+          "scene": "big-1"
+        },
+        {
+          "text": "爸爸的头大，我的头小。",
+          "scene": "big-2"
+        },
+        {
+          "text": "爸爸的口大，我的口小。",
+          "scene": "big-3"
+        },
+        {
+          "text": "爸爸有大车，我有小车。",
+          "scene": "big-4"
+        },
+        {
+          "text": "爸爸在下，我在上！",
+          "scene": "big-5"
+        },
+        {
+          "text": "我大，爸爸小！",
+          "scene": "big-6"
+        }
       ]
     },
     {
       "id": "volcano",
       "title": "我的火山",
       "cover": "volcano-4",
-      "game": ["我", "有", "土", "水", "火", "在"],
+      "game": [
+        "我",
+        "有",
+        "土",
+        "水",
+        "火",
+        "在"
+      ],
       "pages": [
-        { "text": "我有土，有水。", "scene": "volcano-1" },
-        { "text": "我有一个土山。", "scene": "volcano-2" },
-        { "text": "我在土山上开一个口。", "scene": "volcano-3" },
-        { "text": "爸爸、妈妈，我的火山！", "scene": "volcano-4" },
-        { "text": "天上下雨。", "scene": "volcano-5" },
-        { "text": "雨下在火山上。大火山……小火山……", "scene": "volcano-6" },
-        { "text": "我的火山在水里！", "scene": "volcano-7" },
-        { "text": "我有土，有水……我有一个大火山！", "scene": "volcano-8" }
+        {
+          "text": "我有土，有水。",
+          "scene": "volcano-1"
+        },
+        {
+          "text": "我有一个土山。",
+          "scene": "volcano-2"
+        },
+        {
+          "text": "我在土山上开一个口。",
+          "scene": "volcano-3"
+        },
+        {
+          "text": "爸爸、妈妈，我的火山！",
+          "scene": "volcano-4"
+        },
+        {
+          "text": "天上下雨。",
+          "scene": "volcano-5"
+        },
+        {
+          "text": "雨下在火山上。大火山……小火山……",
+          "scene": "volcano-6"
+        },
+        {
+          "text": "我的火山在水里！",
+          "scene": "volcano-7"
+        },
+        {
+          "text": "我有土，有水……我有一个大火山！",
+          "scene": "volcano-8"
+        }
       ]
     },
     {
       "id": "train",
       "title": "开火车",
       "cover": "train-6",
-      "game": ["开", "车", "上", "下", "有", "人"],
+      "game": [
+        "开",
+        "车",
+        "上",
+        "下",
+        "有",
+        "人"
+      ],
       "pages": [
-        { "text": "我开火车。", "scene": "train-1" },
-        { "text": "爸爸上车，妈妈上车。", "scene": "train-2" },
-        { "text": "小羊上车，小牛上车。", "scene": "train-3" },
-        { "text": "火车上有三个人，有一只羊，有一头牛。", "scene": "train-4" },
-        { "text": "一、二、三，火车开！", "scene": "train-5" },
-        { "text": "火车飞上山，飞下山！", "scene": "train-6" },
-        { "text": "火车在门口。下车！", "scene": "train-7" }
+        {
+          "text": "我开火车。",
+          "scene": "train-1"
+        },
+        {
+          "text": "爸爸上车，妈妈上车。",
+          "scene": "train-2"
+        },
+        {
+          "text": "小羊上车，小牛上车。",
+          "scene": "train-3"
+        },
+        {
+          "text": "火车上有三个人，有一只羊，有一头牛。",
+          "scene": "train-4"
+        },
+        {
+          "text": "一、二、三，火车开！",
+          "scene": "train-5"
+        },
+        {
+          "text": "火车飞上山，飞下山！",
+          "scene": "train-6"
+        },
+        {
+          "text": "火车在门口。下车！",
+          "scene": "train-7"
+        }
       ]
     }
   ]
