@@ -29,7 +29,7 @@ button { font: inherit; color: inherit; }
 
 /* bookshelf */
 #shelf { display: flex; flex-direction: column; overflow-y: auto; background: var(--desk); }
-.shelf-in { width: 100%; max-width: 1100px; margin: 0 auto; padding-block: 28px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 22px; }
+.shelf-in { box-sizing: border-box; width: 100%; max-width: 1100px; margin: 0 auto; padding-block: 28px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 22px; }
 .shelf-top { display: flex; justify-content: flex-end; }
 .books { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(16px, 3vw, 32px); }
 .book { border: 0; padding: 0; background: var(--paper); border-radius: 16px; cursor: pointer; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 1px 0 var(--line), 0 10px 24px rgba(90,70,40,.12); text-align: center; position: relative; transition: transform .15s ease; }
@@ -62,6 +62,8 @@ button { font: inherit; color: inherit; }
 .pic > svg { width: 100%; height: 100%; display: block; }
 .band { position: relative; background: var(--paper); padding: clamp(12px, 2.4vh, 26px) clamp(92px, 13vw, 140px) clamp(22px, 3.6vh, 36px); display: flex; justify-content: center; align-items: center; min-height: 22vh; }
 .line { font-family: var(--font-hanzi); color: var(--ink); font-size: clamp(38px, min(7vw, 9vh), 84px); line-height: 1.3; display: flex; flex-wrap: wrap; justify-content: center; gap: 0 .06em; max-width: 13em; }
+.line.long { font-size: clamp(34px, min(5.6vw, 7.4vh), 70px); }
+.row-break { flex-basis: 100%; height: 0; }
 .u { display: inline-flex; align-items: center; white-space: nowrap; }
 .ch { background: none; border: 0; padding: 0 .04em; margin: 0; cursor: pointer; border-radius: 12px; position: relative; font: inherit; color: inherit; }
 .ch:focus-visible { outline: 3px solid var(--seal); outline-offset: 2px; }
@@ -120,7 +122,7 @@ button { font: inherit; color: inherit; }
 
 /* grown-ups */
 #parent { background: var(--desk); overflow-y: auto; }
-.parent-in { max-width: 760px; margin: 0 auto; padding-block: 28px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 26px; }
+.parent-in { box-sizing: border-box; max-width: 760px; margin: 0 auto; padding-block: 28px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 26px; }
 .parent-in h1 { font-size: 26px; font-weight: 600; margin: 0; }
 .parent-in h2 { font-size: 17px; font-weight: 600; margin: 0 0 10px; }
 .parent-in p { margin: 0; color: var(--ink-soft); line-height: 1.55; font-size: 15px; max-width: 62ch; }
@@ -140,6 +142,30 @@ button { font: inherit; color: inherit; }
 .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .err { padding: 40px 20px; text-align: center; color: var(--ink-soft); }
 @media (max-width: 640px) { .books { grid-template-columns: minmax(0, 1fr); } }
+/* A phone (or tablet) held upright: buttons in a bar on top, the whole picture full width,
+   big words in the middle, and the next button at the bottom where a thumb reaches it. */
+@media (orientation: portrait) {
+  .page { display: flex; flex-direction: column; }
+  .pic { flex: none; padding-top: calc(max(14px, env(safe-area-inset-top, 0px)) + clamp(48px, 7vw, 66px) + 12px); }
+  .pic > svg { height: auto; aspect-ratio: 15 / 8; }
+  .band { flex: 1; min-height: 0; padding: 20px max(16px, env(safe-area-inset-left, 0px)) calc(env(safe-area-inset-bottom, 0px) + clamp(120px, 15vh, 170px)); }
+  .line, .line.long { font-size: clamp(36px, 10.5vw, 76px); max-width: 100%; }
+  .arrow, .arrow.next:active { top: auto; transform: none; }
+  .arrow.prev { left: 20px; bottom: calc(env(safe-area-inset-bottom, 0px) + 34px); }
+  .arrow.next { right: 20px; bottom: calc(env(safe-area-inset-bottom, 0px) + 24px); width: clamp(80px, 12vw, 110px); height: clamp(80px, 12vw, 110px); }
+  .arrow.next:active { translate: 0 3px; }
+  .dots { bottom: calc(env(safe-area-inset-bottom, 0px) + 24px + clamp(40px, 6vw, 55px) - 5px); left: 104px; right: 104px; gap: 6px; flex-wrap: wrap; }
+  .books .book .t { font-size: clamp(30px, 8vw, 48px); }
+}
+/* A phone held sideways: little height, so keep the word band compact and give the picture the room. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .band { min-height: 0; padding-top: 6px; padding-bottom: 22px; }
+  .line, .line.long { font-size: clamp(34px, 12vh, 48px); }
+  .dots { bottom: 6px; }
+  .rbtn { width: 46px; height: 46px; }
+  .rbtn.home, .rbtn.speak { top: 10px; }
+  .rbtn.home { left: max(10px, env(safe-area-inset-left, 0px)); }
+}
 @media (prefers-reduced-motion: reduce) { .ch.pop, .bubble, .card.wrong, .rbtn.speak.on, .star-big { animation: none } }
 </style>
 
@@ -379,17 +405,22 @@ button { font: inherit; color: inherit; }
     var p = pages[idx], line = $("line");
     $("pic").innerHTML = renderScene(p.scene);
     fitPic();
-    line.innerHTML = "";
-    var unit = null;
+    /* Each phrase with its punctuation is kept together on one row; fitLine() breaks it only if it can't fit. */
+    lineUnits = []; var cur = null;
     Array.from(p.text).forEach(function (c) {
       if (HAN.test(c)) {
-        if (!unit) { unit = document.createElement("span"); unit.className = "u"; line.appendChild(unit); }
+        if (!cur) { cur = []; lineUnits.push(cur); }
         var b = document.createElement("button"); b.type = "button"; b.className = "ch" + (isLearning(c) ? " new" : ""); b.textContent = c;
         b.addEventListener("click", function (e) { e.stopPropagation(); tapChar(b, c); });
-        unit.appendChild(b);
-      } else { var sp = document.createElement("span"); sp.className = "punct"; sp.textContent = c; sp.setAttribute("aria-hidden", "true"); (unit || line).appendChild(sp); unit = null; }
+        cur.push(b);
+      } else {
+        var sp = document.createElement("span"); sp.className = "punct"; sp.textContent = c; sp.setAttribute("aria-hidden", "true");
+        if (lineUnits.length) lineUnits[lineUnits.length - 1].push(sp); else lineUnits.push([sp]);
+        cur = null;
+      }
     });
-    line.style.fontSize = Array.from(p.text).length > 14 ? "clamp(34px, min(5.6vw, 7.4vh), 70px)" : "";
+    line.classList.toggle("long", Array.from(p.text).length > 14);
+    fitLine();
     $("prev").disabled = idx === 0;
     var last = idx === pages.length - 1, nx = $("next");
     nx.classList.toggle("to-game", last);
@@ -405,7 +436,55 @@ button { font: inherit; color: inherit; }
     var box = $("pic").parentNode.getBoundingClientRect(), r = box.width / Math.max(1, box.height);
     $("pic").setAttribute("preserveAspectRatio", r >= 1.75 && r <= 2.0 ? "xMidYMid slice" : "xMidYMid meet");
   }
-  window.addEventListener("resize", fitPic);
+  /* On a narrow screen (a phone held upright) a long phrase may not fit on one row. Break it where a
+     reader would pause: before 在/有/开 or after 的, near the middle, never inside 妈妈 or 毛毛虫. */
+  var lineUnits = [];
+  function wrapUnit(nodes) { var u = document.createElement("span"); u.className = "u"; nodes.forEach(function (n) { u.appendChild(n); }); return u; }
+  function fitLine() {
+    var line = $("line"), band = $("band"), cs = getComputedStyle(band);
+    fitUnits(line, lineUnits, Math.min(band.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight),
+                                       parseFloat(getComputedStyle(line).fontSize) * 13) - 4);
+  }
+  /* Lay out phrases (arrays of character nodes) in a box `avail` pixels wide, splitting any that don't fit. */
+  function fitUnits(box, units, avail) {
+    box.innerHTML = "";
+    var brk = function () { var r = document.createElement("span"); r.className = "row-break"; box.appendChild(r); };
+    units.forEach(function (nodes) {
+      var u = wrapUnit(nodes); box.appendChild(u);
+      if (avail <= 0 || u.offsetWidth <= avail) return;
+      var widths = nodes.map(function (n) { return n.getBoundingClientRect().width; });
+      box.removeChild(u);
+      /* A phrase that had to be split gets rows of its own, so half of it never sits beside the previous sentence. */
+      if (box.lastChild) brk();
+      splitUnit(nodes, widths, avail).forEach(function (part, k) { if (k) brk(); box.appendChild(wrapUnit(part)); });
+      brk();
+    });
+  }
+  /* The game's blank box is empty on screen; it remembers the character it hides in data-c. */
+  function charOf(n) { return (n.dataset && n.dataset.c) || n.textContent; }
+  function splitUnit(nodes, widths, avail) {
+    var total = widths.reduce(function (a, b) { return a + b; }, 0);
+    if (total <= avail || nodes.length < 3) return [nodes];
+    var best = -1, bestScore = Infinity, left = 0;
+    for (var i = 1; i < nodes.length; i++) {
+      left += widths[i - 1];
+      var a = charOf(nodes[i - 1]), b = charOf(nodes[i]);
+      if (!HAN.test(b)) continue;
+      var score = Math.abs(left - total / 2) / total;
+      if ("在有开".indexOf(b) > -1) score -= 0.4; else if (a === "的") score -= 0.15;
+      if (a === b || "小大".indexOf(a) > -1 || "子虫头".indexOf(b) > -1) score += 0.6;
+      if (left > avail || total - left > avail) score += 0.2;
+      if (score < bestScore) { bestScore = score; best = i; }
+    }
+    return splitUnit(nodes.slice(0, best), widths.slice(0, best), avail)
+      .concat(splitUnit(nodes.slice(best), widths.slice(best), avail));
+  }
+  var refit = 0;
+  window.addEventListener("resize", function () {
+    fitPic();
+    cancelAnimationFrame(refit);
+    refit = requestAnimationFrame(function () { if (!$("reader").hidden) { hideBubble(); fitLine(); } });
+  });
   function tapChar(el, c) {
     $("speak").classList.remove("on");
     el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop");
@@ -537,15 +616,16 @@ button { font: inherit; color: inherit; }
       setTimeout(function () { if (rounds[ri] === r && !locked) sayChar(r.target); }, 450);
     } else {
       var s = document.createElement("div"); s.className = "sentence"; s.lang = "zh-CN";
-      var unit = null;
+      var units = [], cur = null;
       Array.from(story.pages[r.page].text).forEach(function (c, ci) {
-        var el = document.createElement("span");
+        var el = document.createElement("span"); el.dataset.c = c;
         if (ci === r.pos) { el.className = "slot"; el.id = "slot"; }
         else { el.textContent = c; if (!HAN.test(c)) el.style.color = "#8A8178"; }
-        if (HAN.test(c)) { el.dataset.h = "1"; if (!unit) { unit = document.createElement("span"); unit.className = "u"; s.appendChild(unit); } unit.appendChild(el); }
-        else { (unit || s).appendChild(el); unit = null; }
+        if (HAN.test(c)) { el.dataset.h = "1"; if (!cur) { cur = []; units.push(cur); } cur.push(el); }
+        else { if (units.length) units[units.length - 1].push(el); else units.push([el]); cur = null; }
       });
       prompt.appendChild(s);
+      fitUnits(s, units, Math.min($("game").clientWidth - 32, parseFloat(getComputedStyle(s).fontSize) * 13) - 4);
     }
     r.opts.forEach(function (c) {
       var b = document.createElement("button"); b.type = "button"; b.className = "card"; b.setAttribute("aria-label", c);
