@@ -1,11 +1,145 @@
 {
   "known": {
-    "ihuman_through": 30,
-    "ihuman": "一二三人个大山上下小雨天车开火门口月羊只有牛水中风头田土里在",
-    "extra": "爸妈的我飞瓜日白马手木",
-    "weak": ""
+    "ihuman_through": 37,
+    "ihuman": "一二三人个大山上下小雨天车开火门口月羊只有牛水中风头田土里在日白马手出王子",
+    "extra": "爸妈的我飞瓜木果毛虫",
+    "weak": "在",
+    "learning": "花草树"
   },
   "stories": [
+    {
+      "id": "caterpillar",
+      "title": "小毛毛虫",
+      "cover": "cat-2",
+      "game": [
+        "在",
+        "虫",
+        "花",
+        "草",
+        "树",
+        "果"
+      ],
+      "pages": [
+        {
+          "text": "小毛毛虫在草里。",
+          "scene": "cat-1"
+        },
+        {
+          "text": "小毛毛虫在花上。",
+          "scene": "cat-2"
+        },
+        {
+          "text": "小毛毛虫在大树上。",
+          "scene": "cat-3"
+        },
+        {
+          "text": "树上有果子。小毛毛虫在果子里！",
+          "scene": "cat-4"
+        },
+        {
+          "text": "毛毛虫大，果子小。",
+          "scene": "cat-5"
+        },
+        {
+          "text": "天上下雨。毛毛虫在大树下。",
+          "scene": "cat-6"
+        },
+        {
+          "text": "日出。",
+          "scene": "cat-7"
+        },
+        {
+          "text": "毛毛虫……飞上天！",
+          "scene": "cat-8"
+        }
+      ]
+    },
+    {
+      "id": "prince",
+      "title": "小王子出门",
+      "cover": "prince-6",
+      "game": [
+        "在",
+        "王",
+        "子",
+        "出",
+        "花",
+        "树"
+      ],
+      "pages": [
+        {
+          "text": "小王子出门。",
+          "scene": "prince-1"
+        },
+        {
+          "text": "小王子在草上。",
+          "scene": "prince-2"
+        },
+        {
+          "text": "小王子在花里。花大，小王子小。",
+          "scene": "prince-3"
+        },
+        {
+          "text": "小王子在树下。",
+          "scene": "prince-4"
+        },
+        {
+          "text": "树上有……",
+          "scene": "prince-5"
+        },
+        {
+          "text": "大王！",
+          "scene": "prince-6"
+        },
+        {
+          "text": "大王的手里有果子。",
+          "scene": "prince-7"
+        },
+        {
+          "text": "大王一个，小王子一个！",
+          "scene": "prince-8"
+        }
+      ]
+    },
+    {
+      "id": "sunrise",
+      "title": "日出",
+      "cover": "sun-1",
+      "game": [
+        "日",
+        "出",
+        "在",
+        "花",
+        "草",
+        "树"
+      ],
+      "pages": [
+        {
+          "text": "日出。",
+          "scene": "sun-1"
+        },
+        {
+          "text": "花开，小草出土。",
+          "scene": "sun-2"
+        },
+        {
+          "text": "小虫子出门。",
+          "scene": "sun-3"
+        },
+        {
+          "text": "我出门！",
+          "scene": "sun-4"
+        },
+        {
+          "text": "我在树下，小虫子在树上。",
+          "scene": "sun-5"
+        },
+        {
+          "text": "小虫子在我的手上！",
+          "scene": "sun-6"
+        }
+      ]
+    },
     {
       "id": "horse",
       "title": "我的小木马",

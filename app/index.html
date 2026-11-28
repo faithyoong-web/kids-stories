@@ -128,6 +128,9 @@ button { font: inherit; color: inherit; }
 .chip { font-family: var(--font-hanzi); font-size: 30px; line-height: 1; padding: 8px 12px 6px; border-radius: 10px; background: var(--paper); border: 1px solid var(--line); display: inline-flex; align-items: baseline; gap: 6px; }
 .chip small { font-family: var(--font-ui); font-size: 13px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 .chip.weak { border-color: var(--seal); }
+.chip.learning { border: 2px dashed #D9A232; }
+/* A new character he is learning: a soft gold dotted underline says "tap me to hear it". */
+.ch.new { text-decoration: underline dotted #D9A232; text-decoration-thickness: 0.07em; text-underline-offset: 0.16em; }
 .list { display: flex; flex-direction: column; gap: 8px; }
 .list div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px; background: var(--paper); border-radius: 10px; font-size: 15px; }
 .list .hz { font-family: var(--font-hanzi); font-size: 24px; }
@@ -272,7 +275,7 @@ button { font: inherit; color: inherit; }
       </div>
       <div>
         <h2>Characters he tapped for help</h2>
-        <p style="margin-bottom:12px">Most-tapped first. A red outline marks any characters listed as unsure in the word list. Taps are saved on this device only.</p>
+        <p style="margin-bottom:12px">Most-tapped first. A gold dashed outline marks new characters he's learning; a red outline marks ones he's unsure of. Taps are saved on this device only.</p>
         <div class="chips" id="pTaps"></div>
       </div>
       <div>
@@ -292,6 +295,8 @@ button { font: inherit; color: inherit; }
 (function () {
   var KEY = "hz-reader-v1";
   var HAN = /[\u4e00-\u9fff]/;
+  function isLearning(c) { return !!data && (data.known.learning || "").indexOf(c) > -1; }
+  function isWeak(c) { return !!data && (data.known.weak || "").indexOf(c) > -1; }
   function load() { try { var d = JSON.parse(localStorage.getItem(KEY)); if (d && d.taps) return d; } catch (e) {} return { taps: {}, done: {} }; }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
   var state = load(), data = null, manifest = null, story = null, pages = [], idx = 0;
@@ -300,15 +305,22 @@ button { font: inherit; color: inherit; }
   /* ---------- audio ---------- */
   var player = new Audio(); player.preload = "auto";
   var raf = 0, lineToken = 0;
+  /* Plays a clip and calls onend exactly once: when it finishes, fails, or, as a safety net if the sound is
+     interrupted (a call, another app, a backgrounded tab) and never reports finishing, after a timeout. */
+  var safety = 0;
   function play(src, onend) {
-    lineToken++; cancelAnimationFrame(raf);
+    lineToken++; cancelAnimationFrame(raf); clearTimeout(safety);
     try { player.pause(); } catch (e) {}
-    player.onended = onend || null;
+    var tok = lineToken, finished = false;
+    function fin() { if (finished || tok !== lineToken) return; finished = true; clearTimeout(safety); if (onend) onend(); }
+    player.onended = fin; player.onerror = fin;
     player.src = "audio/" + src;
     player.preservesPitch = true; player.webkitPreservesPitch = true;
-    var p = player.play(); if (p && p.catch) p.catch(function () { if (onend) onend(); });
+    safety = setTimeout(fin, 12000);
+    player.onloadedmetadata = function () { if (isFinite(player.duration) && player.duration > 0) { clearTimeout(safety); safety = setTimeout(fin, (player.duration + 1.5) * 1000); } };
+    var p = player.play(); if (p && p.catch) p.catch(fin);
   }
-  function stopAudio() { lineToken++; cancelAnimationFrame(raf); player.onended = null; try { player.pause(); } catch (e) {} }
+  function stopAudio() { lineToken++; cancelAnimationFrame(raf); clearTimeout(safety); player.onended = null; player.onerror = null; try { player.pause(); } catch (e) {} }
   function sayChar(c, onend) { if (manifest && manifest.chars[c]) play(manifest.chars[c], onend); else if (onend) onend(); }
   function praise(key, onend) { if (manifest && manifest.praise[key]) play(manifest.praise[key], onend); else if (onend) onend(); }
   /* Plays a line and lights each character as it is spoken, following the audio clock. */
@@ -372,7 +384,7 @@ button { font: inherit; color: inherit; }
     Array.from(p.text).forEach(function (c) {
       if (HAN.test(c)) {
         if (!unit) { unit = document.createElement("span"); unit.className = "u"; line.appendChild(unit); }
-        var b = document.createElement("button"); b.type = "button"; b.className = "ch"; b.textContent = c;
+        var b = document.createElement("button"); b.type = "button"; b.className = "ch" + (isLearning(c) ? " new" : ""); b.textContent = c;
         b.addEventListener("click", function (e) { e.stopPropagation(); tapChar(b, c); });
         unit.appendChild(b);
       } else { var sp = document.createElement("span"); sp.className = "punct"; sp.textContent = c; sp.setAttribute("aria-hidden", "true"); (unit || line).appendChild(sp); unit = null; }
@@ -467,7 +479,8 @@ button { font: inherit; color: inherit; }
 
   /* ---------- game ---------- */
   var rounds = [], ri = 0, locked = false;
-  function weight(c) { return 1 + Math.min(3, state.taps[c] || 0) + (data.known.weak.indexOf(c) > -1 ? 1 : 0); }
+  /* New words he is learning come up most in the games, then words he is unsure of, then words he tapped for help. */
+  function weight(c) { return 1 + Math.min(3, state.taps[c] || 0) + (isWeak(c) ? 2 : 0) + (isLearning(c) ? 3 : 0); }
   function pickWeighted(list, avoid) {
     var pool = list.filter(function (c) { return c !== avoid; }), tot = 0;
     pool.forEach(function (c) { tot += weight(c); });
@@ -519,9 +532,9 @@ button { font: inherit; color: inherit; }
     if (r.type === "listen") {
       var b = document.createElement("button"); b.type = "button"; b.className = "big"; b.setAttribute("aria-label", "Hear the character");
       b.innerHTML = '<svg aria-hidden="true"><use href="#i-speaker"/></svg>';
-      b.addEventListener("click", function () { sayChar(r.target); });
+      b.addEventListener("click", function () { if (!locked) sayChar(r.target); });
       prompt.appendChild(b);
-      setTimeout(function () { if (rounds[ri] === r) sayChar(r.target); }, 450);
+      setTimeout(function () { if (rounds[ri] === r && !locked) sayChar(r.target); }, 450);
     } else {
       var s = document.createElement("div"); s.className = "sentence"; s.lang = "zh-CN";
       var unit = null;
@@ -547,14 +560,18 @@ button { font: inherit; color: inherit; }
     if (c === r.target) {
       locked = true; b.classList.add("right");
       var cheer = "right" + (1 + Math.floor(Math.random() * 3));
+      /* Move on once: after the praise and replay finish, or after a few seconds whatever happens to the sound. */
+      var moved = false, fallback = 0;
+      var advance = function () { if (moved || rounds[ri] !== r) return; moved = true; clearTimeout(fallback); nextRound(); };
+      fallback = setTimeout(advance, r.type === "fill" ? 9000 : 5000);
       if (r.type === "fill") {
         var slot = $("slot"); slot.textContent = c; slot.classList.add("filled");
         ri++; renderProgress(); ri--;
         var els = Array.from($("prompt").querySelectorAll("[data-h]"));
-        praise(cheer, function () { readLine(manifest.stories[story.id].pages[r.page], els, function () { setTimeout(nextRound, 500); }); });
+        praise(cheer, function () { readLine(manifest.stories[story.id].pages[r.page], els, function () { setTimeout(advance, 500); }); });
       } else {
         ri++; renderProgress(); ri--;
-        sayChar(c, function () { praise(cheer, function () { setTimeout(nextRound, 300); }); });
+        sayChar(c, function () { praise(cheer, function () { setTimeout(advance, 300); }); });
       }
     } else {
       b.classList.remove("wrong"); void b.offsetWidth; b.classList.add("wrong");
@@ -579,7 +596,7 @@ button { font: inherit; color: inherit; }
     var keys = Object.keys(state.taps).sort(function (a, b) { return state.taps[b] - state.taps[a]; });
     if (!keys.length) taps.innerHTML = "<p>No taps yet. When he taps a character for help while reading, it shows up here.</p>";
     keys.forEach(function (c) {
-      var s = document.createElement("span"); s.className = "chip" + (data.known.weak.indexOf(c) > -1 ? " weak" : ""); s.lang = "zh-CN";
+      var s = document.createElement("span"); s.className = "chip" + (isLearning(c) ? " learning" : isWeak(c) ? " weak" : ""); s.lang = "zh-CN";
       s.innerHTML = c + "<small>×" + state.taps[c] + "</small>"; taps.appendChild(s);
     });
     var st = $("pStories"); st.innerHTML = "";

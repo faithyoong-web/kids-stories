@@ -548,6 +548,187 @@
     return room(true) + openDoor(1000, 160, 170, 320) + frozenFamily(0.8, 100, "joy", 1) + horse(860, 600, 0.95, { flip: true, legUp: true });
   };
 
+  /* ---------- garden: caterpillar, flowers, grass, fruit trees, crowns ---------- */
+  function caterpillar(x, y, s, o) {
+    o = o || {}; var f = o.fat || 1, segs = "", belly = "", feet = "", n = 6;
+    for (var i = 0; i < n; i++) {
+      var sx = -i * 26 * f, sy = Math.sin(i * 1.1) * 6, r = 17 * f;
+      segs += C(sx, sy - r, r, i % 2 ? "#8DB85A" : "#9BC566", 0.98);
+      belly += E(sx, sy - r * 0.45, r * 0.55, r * 0.3, "#D3E39B", 0.8);
+      feet += C(sx - 5, sy - 1, 3.5, "#4E6B2E", 0.95) + C(sx + 5, sy - 1, 3.5, "#4E6B2E", 0.95);
+    }
+    var hr = 21 * f, hx = 24 * f, hy = -hr - 4 * f;
+    var headS = C(hx, hy, hr, "#A9D16E", 0.98);
+    var ant = L("M" + (hx - 6) + " " + (hy - hr + 2) + " q -4 -18 -14 -22 M" + (hx + 6) + " " + (hy - hr + 2) + " q 4 -18 14 -22", "#4E6B2E", 3, 0.95) +
+      C(hx - 20, hy - hr - 20, 4, "#4E6B2E", 1) + C(hx + 20, hy - hr - 20, 4, "#4E6B2E", 1);
+    var inner = feet + W(segs + headS, "wcS") + belly + ant + face(hx + 3, hy, hr, o.mood || "smile", 1);
+    if (o.headOnly) inner = W(C(-20 * f, -17 * f, 17 * f, "#9BC566", 0.98) + headS, "wcS") + ant + face(hx + 3, hy, hr, o.mood || "o", 1);
+    return T(x, y, s, inner, o.rot);
+  }
+  function butterfly(x, y, s, rot) {
+    var w = E(-34, -26, 44, 30, "#F2A65A", 0.95, -30) + E(34, -26, 44, 30, "#F2A65A", 0.95, 30) + E(-26, 18, 28, 20, "#E9C46A", 0.95, 25) + E(26, 18, 28, 20, "#E9C46A", 0.95, -25);
+    var spots = C(-40, -30, 9, "#FFF4D6", 0.9) + C(40, -30, 9, "#FFF4D6", 0.9) + C(-26, 20, 6, "#C8553D", 0.85) + C(26, 20, 6, "#C8553D", 0.85);
+    return T(x, y, s, W(w) + spots + W(E(0, 0, 7, 32, "#3A3633", 0.95)) + L("M-3 -30 q -8 -20 -18 -24 M3 -30 q 8 -20 18 -24", "#3A3633", 3, 0.95) + C(-4, -22, 2.5, "#FFFFFF", 1) + C(4, -22, 2.5, "#FFFFFF", 1), rot);
+  }
+  function flower(x, y, s, col, opening) {
+    var petals = "", hy = -150, n = 6;
+    for (var i = 0; i < n; i++) {
+      var a = i * 360 / n, rad = a * Math.PI / 180;
+      if (opening && (a > 100 && a < 260)) continue;
+      petals += E(Math.sin(rad) * 24, hy - Math.cos(rad) * 24, 15, 27, col, 0.95, a);
+    }
+    return T(x, y, s, Bn(L("M0 0 C -6 -50, 6 -100, 0 " + (hy + 10), "#6F8F45", 7, 0.98)) + W(E(-20, -60, 22, 9, "#86A957", 0.95, -30) + E(18, -90, 20, 8, "#86A957", 0.95, 30)) +
+      W(petals) + W(C(0, hy, 15, "#F2C14E", 0.98)));
+  }
+  function sprout(x, y, s) { return T(x, y, s, Bn(L("M0 0 q 2 -20 0 -34", "#6F8F45", 5, 0.98)) + W(E(-12, -36, 13, 7, "#9CC27A", 0.95, -25) + E(12, -38, 13, 7, "#9CC27A", 0.95, 25))); }
+  function grassBlades(x0, x1, base, h, n, sd, col) {
+    seed = sd || 5; var s = "";
+    for (var i = 0; i < n; i++) {
+      var x = x0 + rnd() * (x1 - x0), hh = h * (0.6 + rnd() * 0.5), lean = (rnd() - 0.5) * 50;
+      s += L("M" + x.toFixed(0) + " " + base + " Q " + (x + lean * 0.3).toFixed(0) + " " + (base - hh * 0.6).toFixed(0) + " " + (x + lean).toFixed(0) + " " + (base - hh).toFixed(0), col || (i % 3 ? "#7FA650" : "#93B862"), 7 + rnd() * 5, 0.95);
+    }
+    return Bn(s);
+  }
+  function fruit(cx, cy, r) {
+    return W(C(cx, cy, r, "#E0614A", 0.97)) + Wn(E(cx - r * 0.35, cy - r * 0.35, r * 0.22, r * 0.14, "#F6B9A8", 0.8, -30)) +
+      Bn(L("M" + cx + " " + (cy - r) + " q 2 " + (-r * 0.3) + " " + r * 0.12 + " " + (-r * 0.4), "#7A5638", Math.max(3, r * 0.1), 0.95)) + W(E(cx + r * 0.32, cy - r * 1.1, r * 0.3, r * 0.14, "#86A957", 0.95, -20));
+  }
+  function eatenFruit(cx, cy, r) {
+    return W(P("M" + (cx - r * 0.7) + " " + (cy - r) + " Q " + (cx - r * 0.15) + " " + cy + " " + (cx - r * 0.7) + " " + (cy + r) + " L" + (cx + r * 0.7) + " " + (cy + r) + " Q " + (cx + r * 0.15) + " " + cy + " " + (cx + r * 0.7) + " " + (cy - r) + " Z", "#F6E7C8", 0.97) +
+      E(cx, cy - r, r * 0.72, r * 0.18, "#E0614A", 0.97) + E(cx, cy + r, r * 0.72, r * 0.18, "#E0614A", 0.97)) + C(cx - 4, cy - 6, 3, "#5E4330", 1) + C(cx + 4, cy + 6, 3, "#5E4330", 1) +
+      Bn(L("M" + cx + " " + (cy - r * 1.15) + " q 2 -10 8 -14", "#7A5638", 4, 0.95));
+  }
+  function crown(cx, cy, w) {
+    var h = w * 0.55;
+    return W(P("M" + (cx - w / 2) + " " + cy + " L" + (cx - w / 2) + " " + (cy - h * 0.6) + " L" + (cx - w / 4) + " " + (cy - h * 0.25) + " L" + cx + " " + (cy - h) + " L" + (cx + w / 4) + " " + (cy - h * 0.25) + " L" + (cx + w / 2) + " " + (cy - h * 0.6) + " L" + (cx + w / 2) + " " + cy + " Z", "#EDBE45", 0.98)) +
+      C(cx, cy - h, w * 0.06, "#C8553D", 1) + C(cx - w / 2, cy - h * 0.6, w * 0.05, "#5D7FA6", 1) + C(cx + w / 2, cy - h * 0.6, w * 0.05, "#5D7FA6", 1) + C(cx, cy - h * 0.25, w * 0.07, "#C8553D", 0.9);
+  }
+  function crownOn(kind, x, y, sc) { var k = KINDS[kind]; return crown(x, y + (k.headCy - k.r * 0.86) * sc, k.r * 1.5 * sc); }
+  function ladybug(x, y, s, rot) {
+    return T(x, y, s, L("M-20 14 l -10 10 M0 18 v 12 M20 14 l 10 10", "#2A2622", 3, 0.9) + W(E(0, 0, 34, 27, "#D9483B", 0.98) + E(32, 2, 14, 15, "#2A2622", 0.98)) +
+      L("M0 -26 v 52", "#2A2622", 3, 0.9) + C(-14, -10, 5.5, "#2A2622", 1) + C(-15, 10, 5.5, "#2A2622", 1) + C(12, -12, 4.5, "#2A2622", 1) + C(13, 11, 4.5, "#2A2622", 1) +
+      C(35, -3, 2.6, "#FFFFFF", 1) + C(40, 4, 2.6, "#FFFFFF", 1) + Wn(E(-10, -14, 8, 4, "#F6B9A8", 0.6, -20)), rot);
+  }
+  /* A wide tree: trunk, branches and a leafy crown; o.fruits hangs fruit, o.behind is drawn among the leaves. */
+  function bigTree(x, y, s, o) {
+    o = o || {};
+    var trunk = B(L("M0 0 L0 -230 M0 -150 C -40 -190, -90 -210, -140 -230 M0 -170 C 40 -210, 100 -230, 150 -250", "#7A5638", 34, 0.95));
+    var back = W(C(-150, -300, 95, "#86A957", 0.92) + C(150, -310, 100, "#7FA650", 0.92) + C(0, -360, 120, "#8FB36A", 0.92));
+    var front = W(C(-70, -250, 80, "#9CC27A", 0.9) + C(80, -255, 85, "#93B862", 0.9) + C(-210, -250, 60, "#9CC27A", 0.9) + C(220, -260, 62, "#9CC27A", 0.9));
+    var fr = (o.fruits || []).map(function (f) { return fruit(f[0], f[1], f[2] || 18); }).join("");
+    return T(x, y, s, trunk + back + (o.behind || "") + front + fr);
+  }
+  function rootDoor(x, y, open) {
+    return W(P("M" + (x - 20) + " " + y + " L" + (x - 20) + " " + (y - 26) + " A20 20 0 0 1 " + (x + 20) + " " + (y - 26) + " L" + (x + 20) + " " + y + " Z", open ? "#4A3528" : "#8E5A3B", 0.97)) +
+      (open ? W(P("M" + (x + 20) + " " + y + " L" + (x + 20) + " " + (y - 44) + " L" + (x + 34) + " " + (y - 40) + " L" + (x + 34) + " " + (y - 2) + " Z", "#8E5A3B", 0.97)) : C(x + 12, y - 18, 3, "#E3B65B", 1));
+  }
+  function sunriseSky() {
+    var rays = "";
+    for (var a = -70; a <= 70; a += 20) { var r = a * Math.PI / 180; rays += L("M" + (600 + Math.sin(r) * 150) + " " + (420 - Math.cos(r) * 150) + " L" + (600 + Math.sin(r) * 215) + " " + (420 - Math.cos(r) * 215), "#F2C14E", 9, 0.8); }
+    return W(P("M-10 -10 H1210 V460 H-10 Z", "#F6DCC0", 0.85)) + W(P("M-10 -10 H1210 V170 C 800 190, 400 150, -10 180 Z", "#D7E3E6", 0.8)) + B(rays) + W(C(600, 420, 120, "#F2B35E", 0.95));
+  }
+  function morningLight() { return W(P("M-10 -10 H1210 V460 H-10 Z", "#F6E2C8", 0.8)) + W(C(1040, 110, 60, "#F2C98C", 0.85)); }
+
+  /* 小毛毛虫 */
+  S["cat-1"] = function () {
+    return sky("#D3E4EA") + ground(380, "#B9CD8B") + grassBlades(-20, 1220, 660, 300, 60, 11, "#A6C67A") +
+      caterpillar(620, 520, 1.7, { mood: "grin" }) + grassBlades(-20, 1220, 680, 220, 45, 23);
+  };
+  S["cat-2"] = function () {
+    return sky("#D3E4EA") + ground(470, "#B9CD8B") + flower(240, 640, 1.6, "#F4C3CF") + flower(980, 660, 1.8, "#C9B8E8") + flower(600, 760, 3.4, "#E98AA6") +
+      caterpillar(620, 248, 1.0, { mood: "grin" });
+  };
+  S["cat-3"] = function () {
+    return sky("#D3E4EA", 640) + W(P("M30 700 C 70 400, 60 200, 50 -20 L170 -20 C 160 200, 150 400, 200 700 Z", "#7A5638", 0.95)) + B(L("M120 380 C 400 360, 700 340, 1240 290", "#7A5638", 46, 0.95)) +
+      W(C(420, 200, 120, "#8FB36A", 0.9) + C(760, 160, 140, "#86A957", 0.9) + C(1100, 180, 130, "#93B862", 0.9) + C(220, 120, 110, "#9CC27A", 0.9)) +
+      W(E(560, 300, 36, 16, "#86A957", 0.95, -20) + E(900, 280, 40, 16, "#7FA650", 0.95, 15)) + caterpillar(700, 330, 1.3, { mood: "joy" }) + tufts([[200, 640], [900, 650]]);
+  };
+  S["cat-4"] = function () {
+    return sky("#D3E4EA", 640) + B(L("M-20 120 C 300 130, 700 110, 1240 140", "#7A5638", 40, 0.95)) + W(C(200, 60, 120, "#8FB36A", 0.9) + C(1000, 70, 130, "#86A957", 0.9)) +
+      B(L("M330 125 v 70 M620 120 v 90 M900 128 v 70", "#7A5638", 6, 0.95)) + fruit(330, 280, 70) + fruit(900, 280, 70) +
+      fruit(620, 330, 110) + W(E(650, 330, 34, 30, "#5E2F22", 0.95)) + caterpillar(660, 345, 1.05, { headOnly: true, mood: "grin" });
+  };
+  S["cat-5"] = function () {
+    return sky("#D3E4EA", 640) + B(L("M-20 470 C 300 450, 800 460, 1240 430", "#7A5638", 50, 0.95)) + W(C(150, 160, 130, "#8FB36A", 0.9) + C(1050, 140, 150, "#86A957", 0.9)) +
+      caterpillar(560, 450, 2.1, { fat: 1.5, mood: "joy" }) + eatenFruit(930, 380, 62);
+  };
+  S["cat-6"] = function () {
+    return sky("#B9C4CC") + cloud(240, 80, 1.3, "#9AA6AF", 0.8) + cloud(980, 70, 1.4, "#A5B0B8", 0.8) + ground(470, "#AFC291") + rain(80, 0, 1200, 120, 620) +
+      bigTree(600, 610, 1.35, {}) + caterpillar(560, 610, 0.9, { mood: "smile" }) + W(E(600, 612, 200, 14, "#8C7B5C", 0.25));
+  };
+  S["cat-7"] = function () {
+    return sunriseSky() + hills(420, "#A7C0B4") + ground(520, "#B9CD8B") + birds([[300, 160], [360, 190]]) +
+      B(L("M760 640 L780 330 M780 400 C 840 380, 900 370, 960 360", "#7A5638", 16, 0.95)) + W(C(860, 330, 70, "#8FB36A", 0.9) + C(770, 300, 60, "#86A957", 0.9)) +
+      B(L("M930 362 v 26", "#7A5638", 3, 0.9)) + W(E(930, 412, 18, 30, "#9CC27A", 0.95));
+  };
+  S["cat-8"] = function () {
+    return sky("#C3DCE6", 640) + sun(1030, 110, 58) + cloud(250, 150, 0.9, "#FFFFFF", 0.85) + ground(560, "#B9CD8B") +
+      flower(160, 660, 1.1, "#E98AA6") + flower(320, 680, 0.9, "#C9B8E8") + flower(1000, 670, 1.0, "#F4C3CF") +
+      B(L("M420 560 C 460 480, 380 420, 470 380 C 540 350, 520 300, 590 270", "#9E8160", 4, 0.6, "3 14")) + butterfly(650, 230, 1.6, 15);
+  };
+
+  /* 小王子出门 */
+  S["prince-1"] = function () {
+    return sky() + sun(170, 100, 50) + hills(360, "#AFC6B9") + ground(470, "#C9D79B") + ground(560, "#B9CD8B") + house(true) +
+      fig("boy", 925, 562, 1.05, { arms: [150, 150], mood: "joy" }) + crownOn("boy", 925, 562, 1.05) + flower(560, 640, 0.8, "#E98AA6") + flower(640, 650, 0.7, "#F4C3CF");
+  };
+  S["prince-2"] = function () {
+    return sky() + sun() + hills(300) + ground(420, "#B9CD8B") + grassBlades(-20, 1220, 620, 160, 50, 31, "#A6C67A") +
+      fig("boy", 600, 610, 1.4, { arms: [110, 110], mood: "grin" }) + crownOn("boy", 600, 610, 1.4) + grassBlades(-20, 1220, 670, 140, 40, 47);
+  };
+  S["prince-3"] = function () {
+    return sky() + sun() + hills(320) + ground(470, "#B9CD8B") + fig("boy", 600, 600, 1.0, { arms: [20, 20], mood: "o" }) + crownOn("boy", 600, 600, 1.0) +
+      flower(330, 660, 2.6, "#E98AA6") + flower(470, 680, 2.2, "#F4C3CF") + flower(760, 670, 2.5, "#C9B8E8") + flower(900, 680, 2.0, "#E98AA6") + flower(1080, 660, 2.4, "#F4C3CF") + flower(150, 680, 2.1, "#C9B8E8");
+  };
+  S["prince-4"] = function () {
+    return sky() + sun(1060, 100, 50) + ground(500, "#B9CD8B") + bigTree(560, 620, 1.35, { fruits: [[-120, -230], [90, -210], [10, -310], [170, -300], [-200, -280]] }) +
+      fig("boy", 640, 610, 1.0, { arms: [12, 150], mood: "grin" }) + crownOn("boy", 640, 610, 1.0);
+  };
+  S["prince-5"] = function () {
+    var peek = crown(60, -318, 120) + B(L("M-10 -360 q -20 -20 -40 -10 M130 -360 q 20 -20 40 -10", "#6F8F45", 5, 0.8));
+    return sky() + ground(560, "#B9CD8B") + bigTree(600, 700, 1.55, { behind: peek, fruits: [[-150, -230], [120, -220], [200, -300], [-230, -300]] }) +
+      fig("boy", 980, 620, 0.85, { arms: [12, 12], mood: "o", look: -1 }) + crownOn("boy", 980, 620, 0.85);
+  };
+  S["prince-6"] = function () {
+    var dad = person("dad", { legs: "straddle", arms: [150, 150], mood: "joy" });
+    var king = T(30, -85, 0.95, dad.body + dad.head) + crownOn("dad", 30, -85, 0.95);
+    return sky() + ground(560, "#B9CD8B") + bigTree(560, 700, 1.55, { behind: king, fruits: [[-150, -230], [200, -300], [-230, -300]] }) +
+      fig("boy", 990, 620, 0.85, { arms: [150, 150], mood: "joy", look: -1 }) + crownOn("boy", 990, 620, 0.85);
+  };
+  S["prince-7"] = function () {
+    return wall() + bust("boy", 1040, 440, 72, "joy", -1) + crown(1040, 440 - 72 * 0.86, 108) +
+      bust("dad", 600, 200, 100, "joy", 0) + crown(600, 200 - 100 * 0.86, 150) + fruit(545, 455, 46) + fruit(655, 460, 44) + palms(600, 480, 200, "#6E9C9A");
+  };
+  S["prince-8"] = function () {
+    var dh = [], bh = [];
+    var dad = fig("dad", 430, 600, 1.0, { arms: [12, 60], mood: "joy", hands: dh });
+    var boy = fig("boy", 680, 600, 1.0, { arms: [60, 12], mood: "joy", hands: bh });
+    return sky() + sun() + ground(500, "#B9CD8B") + bigTree(560, 560, 1.1, { fruits: [[-120, -230], [90, -210], [170, -300]] }) + dad + crownOn("dad", 430, 600, 1.0) + boy + crownOn("boy", 680, 600, 1.0) +
+      fruit(430 + dh[1][0], 600 + dh[1][1] - 22, 26) + fruit(680 + bh[0][0], 600 + bh[0][1] - 20, 22);
+  };
+
+  /* 日出 */
+  S["sun-1"] = function () { return sunriseSky() + hills(420, "#A7C0B4") + ground(520, "#B9CD8B") + birds([[260, 170], [320, 200], [880, 150]]) + tufts([[200, 600], [980, 610]]); };
+  S["sun-2"] = function () {
+    var crumbs = ""; seed = 9; for (var i = 0; i < 18; i++) crumbs += C(rnd() * 1200, 500 + rnd() * 30, 4 + rnd() * 4, "#6E4E33", 0.9);
+    return morningLight() + W(P("M-10 470 C 400 455, 800 480, 1210 462 L1210 660 L-10 660 Z", "#9C7350", 0.95)) + W(crumbs) +
+      flower(260, 480, 1.6, "#E98AA6") + flower(930, 480, 1.7, "#C9B8E8", true) + flower(620, 480, 1.3, "#F4C3CF", true) +
+      sprout(420, 480, 1.5) + sprout(500, 482, 1.1) + sprout(760, 480, 1.4) + sprout(1080, 480, 1.2);
+  };
+  S["sun-3"] = function () {
+    return morningLight() + ground(420, "#B9CD8B") + W(P("M470 660 C 500 500, 520 300, 500 -20 L700 -20 C 680 300, 700 500, 730 660 Z", "#7A5638", 0.95)) + B(L("M430 620 C 480 560, 520 540, 520 480 M770 620 C 720 560, 680 540, 680 480", "#7A5638", 60, 0.95)) +
+      T(600, 560, 2.3, rootDoor(0, 0, true) + ladybug(-44, -4, 0.8, 10)) + grassBlades(-20, 1220, 660, 120, 40, 61) + flower(220, 660, 1.0, "#E98AA6");
+  };
+  S["sun-4"] = function () {
+    return morningLight() + hills(360, "#AFC6B9") + ground(470, "#C9D79B") + ground(560, "#B9CD8B") + house(true) +
+      fig("boy", 925, 562, 1.05, { arms: [150, 150], mood: "joy" }) + flower(560, 640, 0.8, "#E98AA6") + sprout(660, 620, 1.2);
+  };
+  S["sun-5"] = function () {
+    return morningLight() + ground(500, "#B9CD8B") + bigTree(600, 640, 1.4, {}) + ladybug(700, 312, 1.0, -10) +
+      fig("boy", 560, 630, 1.05, { arms: [12, 150], mood: "joy", look: 1 }) + tufts([[200, 620], [940, 630]]);
+  };
+  S["sun-6"] = function () { return wall() + bust("boy", 600, 210, 92, "joy", 0) + palms(600, 470, 200, "#E07B5A") + ladybug(600, 445, 1.7, -15); };
+
   window.SCENES = S;
   window.renderScene = function (id) { var f = S[id]; return paper() + (f ? f() : "") + grain(); };
 })();
